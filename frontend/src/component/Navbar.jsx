@@ -15,6 +15,7 @@ export function Navbar() {
         localStorage.removeItem('token');
         localStorage.removeItem('loggedInUser');
         localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
         // Optional: clearCart() if you want to clear cart on logout
         navigate('/login');
     };
@@ -105,21 +106,23 @@ export function Navbar() {
 
             {loggedInUser ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: '8px' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--primary)',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: '1rem'
-                }}>
-                  {loggedInUser.charAt(0).toUpperCase()}
-                </div>
-                <span style={{ fontWeight: 600, color: 'var(--text-dark)' }}>Hi, {loggedInUser}</span>
+                <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--primary)',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}>
+                    {loggedInUser.charAt(0).toUpperCase()}
+                  </div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-dark)' }}>Hi, {loggedInUser}</span>
+                </Link>
                 <Button variant="outline" onClick={handleLogout}>Logout</Button>
               </div>
             ) : (

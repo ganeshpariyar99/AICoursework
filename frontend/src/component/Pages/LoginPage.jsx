@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../ui/Button';
 
 export function LoginPage() {
@@ -8,6 +8,7 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,9 +31,11 @@ export function LoginPage() {
         localStorage.setItem('token', data.jwtToken);
         localStorage.setItem('loggedInUser', data.name);
         localStorage.setItem('userEmail', data.email);
+        localStorage.setItem('userId', data.userId);
 
-        // Navigate to home/dashboard
-        navigate('/');
+        // Navigate to previous page or home
+        const from = location.state?.from || '/';
+        navigate(from, { replace: true });
       } else {
         setError(data.message || 'Login failed');
       }

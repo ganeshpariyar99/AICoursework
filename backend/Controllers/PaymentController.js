@@ -1,3 +1,5 @@
+const OrderModel = require('../Models/Order');
+
 const initiatePayment = async (req, res) => {
     try {
         const { amount, purchase_order_id, purchase_order_name, name, email, phone } = req.body;
@@ -55,7 +57,17 @@ const verifyPayment = async (req, res) => {
         const data = await response.json();
         
         if (response.ok && data.status === "Completed") {
-            // Payment successful, you can update order status in DB here
+            // Update order status in DB
+            const orderId = data.purchase_order_id;
+            try {
+                await OrderModel.findByIdAndUpdate(orderId, {
+                    paymentStatus: 'Completed',
+                    transactionId: data.transaction_id,
+                    status: 'Processing' // Change to Processing after payment
+                });
+            } catch(dbErr) {
+                console.error("Failed to update order status in DB", dbErr);
+            }
             return res.status(200).json({ success: true, message: "Payment Verified Successfully", data });
         } else {
             return res.status(400).json({ success: false, message: "Payment Verification Failed", data });

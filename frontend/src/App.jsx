@@ -15,6 +15,7 @@ import { CartPage } from './component/Pages/CartPage';
 import { WishlistPage } from './component/Pages/WishlistPage';
 import { ProductDetails } from './component/Pages/ProductDetails';
 import { OrderConfirmationPage } from './component/Pages/OrderConfirmationPage';
+import { ProfilePage } from './component/Pages/ProfilePage';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/wishlist" element={<WishlistPage />} />
                 <Route path="/product/:id" element={<ProductDetails />} />
                 <Route path="/payment/success" element={<OrderConfirmationPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
 
                 {/* Fallback routes */}
                 <Route path="*" element={<Navigate to="/" replace />} />

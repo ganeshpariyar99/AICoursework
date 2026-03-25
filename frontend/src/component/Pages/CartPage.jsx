@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { useCart } from '../../context/CartContext';
 import './CartPage.css';
 
 export function CartPage() {
+    const navigate = useNavigate();
     const { cartItems, removeFromCart, updateQuantity } = useCart();
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -14,14 +15,50 @@ export function CartPage() {
     const total = subtotal + shipping;
 
     const handleCheckout = async () => {
+        const userName = localStorage.getItem('loggedInUser');
+        if (!userName) {
+            navigate('/login', { state: { from: '/cart' } });
+            return;
+        }
+
         setIsProcessing(true);
         try {
-            const userName = localStorage.getItem('loggedInUser') || "Customer";
             const userEmail = localStorage.getItem('userEmail') || "customer@example.com";
+            const userId = localStorage.getItem('userId');
 
+            // 1. Create order in DB
+            const orderPayload = {
+                userId,
+                items: cartItems.map(item => ({
+                    productId: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    img: item.img
+                })),
+                totalAmount: total
+            };
+
+            const orderResponse = await fetch('http://localhost:8081/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderPayload)
+            });
+
+            const orderData = await orderResponse.json();
+
+            if (!orderData.success) {
+                alert('Failed to create order.');
+                setIsProcessing(false);
+                return;
+            }
+
+            const orderId = orderData.order._id;
+
+            // 2. Initiate payment
             const payload = {
                 amount: total * 100, // Khalti requires amount in paisa
-                purchase_order_id: "Order_" + Date.now(),
+                purchase_order_id: orderId,
                 purchase_order_name: "Cart Items",
                 name: userName, 
                 email: userEmail,

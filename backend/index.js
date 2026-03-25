@@ -4,6 +4,8 @@ const app = express();
 const cors = require('cors');
 const AuthRouter = require('./Routes/AuthRouter');
 const PaymentRouter = require('./Routes/PaymentRouter');
+const OrderRouter = require('./Routes/OrderRouter');
+const UserRouter = require('./Routes/UserRouter');
 
 require('dotenv').config();
 require('./Models/db');
@@ -16,6 +18,8 @@ app.use(express.json());
 
 app.use('/auth', AuthRouter);
 app.use('/payment', PaymentRouter);
+app.use('/orders', OrderRouter);
+app.use('/users', UserRouter);
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on ${PORT}`)
