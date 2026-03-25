@@ -142,3 +142,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Frontend pages to ignore (except LoginPage and RegisterPage)
+frontend/src/component/Pages/CartPage.js
+frontend/src/component/Pages/CartPage.css
+frontend/src/component/Pages/LandingPage.js
+frontend/src/component/Pages/LandingPage.css
+frontend/src/component/Pages/ProductsPage.js
+frontend/src/component/Pages/ProductsPage.css
