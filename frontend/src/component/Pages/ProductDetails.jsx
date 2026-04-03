@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
-import { MOCK_PRODUCTS, FALLBACK_IMG } from '../../data/mockData';
+import { FALLBACK_IMG } from '../../data/mockData';
+import { useProduct } from '../../context/ProductContext';
 import { Button } from '../ui/Button';
 import './ProductDetails.css';
 
@@ -11,10 +12,12 @@ export function ProductDetails() {
     const navigate = useNavigate();
     const { addToCart } = useCart();
     const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+    const { products } = useProduct();
     const [product, setProduct] = useState(null);
 
     useEffect(() => {
-        const foundProduct = MOCK_PRODUCTS.find(p => p.id === parseInt(id));
+        // Compare with string ID or number ID robustly
+        const foundProduct = products.find(p => String(p.id) === String(id));
         if (foundProduct) {
             setProduct(foundProduct);
         } else {

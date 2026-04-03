@@ -10,6 +10,7 @@ export function Navbar() {
   const { cartCount } = useCart();
     const { wishlistCount } = useWishlist();
     const loggedInUser = localStorage.getItem('loggedInUser');
+    const userEmail = localStorage.getItem('userEmail');
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -55,6 +56,11 @@ export function Navbar() {
             <Link to="/products" className="nav-link">
               Shop
             </Link>
+            {userEmail === 'ganeshadmin@egadgethive.com' && (
+              <Link to="/admin" className="nav-link">
+                Admin Dashboard
+              </Link>
+            )}
 
             <Link to="/wishlist" className="cart-icon-btn">
               <div style={{ position: 'relative' }}>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
-import { MOCK_PRODUCTS, CATEGORIES, BRANDS, FALLBACK_IMG } from '../../data/mockData';
+import { CATEGORIES, BRANDS, FALLBACK_IMG } from '../../data/mockData';
+import { useProduct } from '../../context/ProductContext';
 import './ProductsPage.css';
 
 export function ProductsPage() {
@@ -14,6 +15,7 @@ export function ProductsPage() {
 
     const { addToCart } = useCart();
     const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+    const { products } = useProduct();
 
     // Sync state with URL params on initial load or URL change
     useEffect(() => {
@@ -39,7 +41,7 @@ export function ProductsPage() {
     const searchQuery = searchParams.get('search');
 
     // Filter products
-    const filteredProducts = MOCK_PRODUCTS.filter(product => {
+    const filteredProducts = products.filter(product => {
         // Price Filter
         if (product.price > maxPrice) return false;
 

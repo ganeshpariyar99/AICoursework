@@ -4,11 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
-import { MOCK_PRODUCTS, FALLBACK_IMG } from '../../data/mockData';
+import { FALLBACK_IMG } from '../../data/mockData';
+import { useProduct } from '../../context/ProductContext';
 import './LandingPage.css';
-
-// Select first 4 products as featured
-const FEATURED_PRODUCTS = MOCK_PRODUCTS.slice(0, 4);
 
 const CATEGORIES = [
   { name: 'Smartphones', img: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=600&auto=format&fit=crop' },
@@ -21,6 +19,8 @@ export function LandingPage() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { products } = useProduct();
+  const FEATURED_PRODUCTS = products.slice(0, 4);
 
   return (
     <div className="landing-page container">

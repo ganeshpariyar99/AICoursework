@@ -33,10 +33,18 @@ export function LoginPage() {
         localStorage.setItem('userEmail', data.email);
         localStorage.setItem('userId', data.userId);
 
-        // Navigate to previous page or home
-        const from = location.state?.from || '/';
-        navigate(from, { replace: true });
+        // Map admin redirect logic
+        if (data.email === 'ganeshadmin@egadgethive.com') {
+            navigate('/admin', { replace: true });
+        } else {
+            // Navigate to previous page or home
+            const from = location.state?.from || '/';
+            navigate(from, { replace: true });
+        }
       } else {
+        if (data.message === "Account not available" || data.message === "Your account is banned!!!!") {
+            alert(data.message);
+        }
         setError(data.message || 'Login failed');
       }
     } catch (err) {

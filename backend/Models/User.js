@@ -16,6 +16,10 @@ const UserSchema = new Schema({
     password:{
         type: String,
         required: true,
+    },
+    banned: {
+        type: Boolean,
+        default: false
     }
 });
 
