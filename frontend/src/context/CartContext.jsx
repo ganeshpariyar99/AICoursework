@@ -1,10 +1,40 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
     const [cartItems, setCartItems] = useState([]);
     const [toastMessage, setToastMessage] = useState(null);
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    useEffect(() => {
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            fetch(`http://localhost:8081/users/profile/${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.user && data.user.cart) {
+                        setCartItems(data.user.cart);
+                    }
+                    setIsInitialized(true);
+                })
+                .catch(() => setIsInitialized(true));
+        } else {
+            setIsInitialized(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!isInitialized) return;
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            fetch(`http://localhost:8081/users/cart/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart: cartItems })
+            }).catch(console.error);
+        }
+    }, [cartItems, isInitialized]);
 
     const addToCart = (product) => {
         setCartItems(prev => {

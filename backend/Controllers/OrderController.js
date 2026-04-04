@@ -45,7 +45,21 @@ const getUserOrders = async (req, res) => {
     }
 };
 
+const getAllOrders = async (req, res) => {
+    try {
+        const orders = await OrderModel.find({}).populate('userId', 'name email').sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            orders
+        });
+    } catch (error) {
+        console.error("Get All Orders Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 module.exports = {
     createOrder,
-    getUserOrders
+    getUserOrders,
+    getAllOrders
 };

@@ -144,7 +144,7 @@
     align-items: stretch;
 }
 
-.add-to-cart-large {
+.add-to-cart-large, .buy-now-large {
     flex: 1;
     display: flex;
     justify-content: center;
@@ -153,6 +153,19 @@
     font-size: 1.1rem;
     padding: 1rem;
     border-radius: 8px;
+    font-weight: 600;
+}
+
+.buy-now-large {
+    background-color: #10b981;
+    color: white;
+    border: none;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.buy-now-large:hover {
+    background-color: #059669;
 }
 
 .wishlist-toggle-btn {

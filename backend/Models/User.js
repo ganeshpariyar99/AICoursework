@@ -20,6 +20,14 @@ const UserSchema = new Schema({
     banned: {
         type: Boolean,
         default: false
+    },
+    cart: {
+        type: Array,
+        default: []
+    },
+    wishlist: {
+        type: Array,
+        default: []
     }
 });
 

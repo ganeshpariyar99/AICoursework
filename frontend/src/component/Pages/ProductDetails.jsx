@@ -36,6 +36,11 @@ export function ProductDetails() {
 
     const inWishlist = isInWishlist(product.id);
 
+    const handleBuyNow = () => {
+        addToCart(product);
+        navigate('/cart');
+    };
+
     return (
         <div className="container product-details-page">
             <div className="breadcrumb">
@@ -94,6 +99,16 @@ export function ProductDetails() {
                                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                             </svg>
                             Add to Cart
+                        </Button>
+
+                        <Button 
+                            className="buy-now-large"
+                            onClick={handleBuyNow}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                            Buy Now
                         </Button>
 
                         <button 

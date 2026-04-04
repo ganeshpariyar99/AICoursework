@@ -6,6 +6,7 @@ const AuthRouter = require('./Routes/AuthRouter');
 const PaymentRouter = require('./Routes/PaymentRouter');
 const OrderRouter = require('./Routes/OrderRouter');
 const UserRouter = require('./Routes/UserRouter');
+const ProductRouter = require('./Routes/ProductRouter');
 
 require('dotenv').config();
 require('./Models/db');
@@ -20,6 +21,7 @@ app.use('/auth', AuthRouter);
 app.use('/payment', PaymentRouter);
 app.use('/orders', OrderRouter);
 app.use('/users', UserRouter);
+app.use('/products', ProductRouter);
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on ${PORT}`)

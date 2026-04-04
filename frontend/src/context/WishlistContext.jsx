@@ -1,10 +1,40 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const WishlistContext = createContext();
 
 export function WishlistProvider({ children }) {
     const [wishlistItems, setWishlistItems] = useState([]);
     const [toastMessage, setToastMessage] = useState(null);
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    useEffect(() => {
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            fetch(`http://localhost:8081/users/profile/${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.user && data.user.wishlist) {
+                        setWishlistItems(data.user.wishlist);
+                    }
+                    setIsInitialized(true);
+                })
+                .catch(() => setIsInitialized(true));
+        } else {
+            setIsInitialized(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!isInitialized) return;
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            fetch(`http://localhost:8081/users/wishlist/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wishlist: wishlistItems })
+            }).catch(console.error);
+        }
+    }, [wishlistItems, isInitialized]);
 
     const addToWishlist = (product) => {
         setWishlistItems(prev => {

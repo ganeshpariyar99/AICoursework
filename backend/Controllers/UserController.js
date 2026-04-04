@@ -85,10 +85,42 @@ const toggleBanUser = async (req, res) => {
     }
 };
 
+const syncCart = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { cart } = req.body;
+        
+        const user = await UserModel.findByIdAndUpdate(userId, { cart }, { new: true });
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+        
+        res.status(200).json({ success: true, cart: user.cart });
+    } catch (error) {
+        console.error("Sync Cart Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+const syncWishlist = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { wishlist } = req.body;
+        
+        const user = await UserModel.findByIdAndUpdate(userId, { wishlist }, { new: true });
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+        
+        res.status(200).json({ success: true, wishlist: user.wishlist });
+    } catch (error) {
+        console.error("Sync Wishlist Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 module.exports = {
     getUserProfile,
     updateUserProfile,
     getAllUsers,
     deleteUser,
-    toggleBanUser
+    toggleBanUser,
+    syncCart,
+    syncWishlist
 };
