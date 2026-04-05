@@ -7,8 +7,8 @@ import { useWishlist } from '../context/WishlistContext';
 export function Navbar() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const { cartCount } = useCart();
-    const { wishlistCount } = useWishlist();
+  const { cartCount, clearCart } = useCart();
+    const { wishlistCount, clearWishlist } = useWishlist();
     const loggedInUser = localStorage.getItem('loggedInUser');
     const userEmail = localStorage.getItem('userEmail');
 
@@ -17,7 +17,10 @@ export function Navbar() {
         localStorage.removeItem('loggedInUser');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userId');
-        // Optional: clearCart() if you want to clear cart on logout
+        
+        clearCart();
+        clearWishlist();
+        
         navigate('/login');
     };
 

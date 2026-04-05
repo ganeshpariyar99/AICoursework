@@ -139,14 +139,20 @@ export function CartPage() {
                                     <input
                                         type="number"
                                         value={item.quantity}
-                                        onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                                        onChange={(e) => {
+                                            let newQty = parseInt(e.target.value) || 1;
+                                            if (newQty > Number(item.stock)) newQty = Number(item.stock);
+                                            updateQuantity(item.id, newQty);
+                                        }}
                                         className="qty-input"
                                         min="1"
+                                        max={item.stock}
                                     />
                                     <button
                                         className="qty-btn plus"
                                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                         aria-label="Increase quantity"
+                                        disabled={item.quantity >= Number(item.stock)}
                                     >
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <line x1="12" y1="5" x2="12" y2="19"></line>

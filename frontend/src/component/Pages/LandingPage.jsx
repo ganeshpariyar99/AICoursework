@@ -129,9 +129,23 @@ export function LandingPage() {
               <div className="product-info">
                 <p className="product-category">{product.category}</p>
                 <h3 className="product-name">{product.name}</h3>
-                <div className="product-bottom">
-                  <span className="product-price">NPR {product.price.toLocaleString()}</span>
-                  <button className="add-to-cart-btn" aria-label="Add to cart" onClick={(e) => { e.stopPropagation(); addToCart(product); }}>
+                <div className="product-bottom" style={{ alignItems: 'flex-end' }}>
+                  <div>
+                    <span className="product-price" style={{ display: 'block' }}>NPR {product.price.toLocaleString()}</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 500, color: Number(product.stock) > 0 ? 'var(--text-medium)' : 'var(--error-color, red)' }}>
+                        {Number(product.stock) > 0 ? `${product.stock} left` : 'Out of Stock'}
+                    </span>
+                  </div>
+                  <button 
+                    className="add-to-cart-btn" 
+                    aria-label="Add to cart" 
+                    onClick={(e) => { 
+                        e.stopPropagation(); 
+                        if(Number(product.stock) > 0) addToCart(product); 
+                    }}
+                    disabled={!(Number(product.stock) > 0)}
+                    style={{ opacity: Number(product.stock) > 0 ? 1 : 0.5, cursor: Number(product.stock) > 0 ? 'pointer' : 'not-allowed' }}
+                  >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="9" cy="21" r="1"></circle>
                       <circle cx="20" cy="21" r="1"></circle>

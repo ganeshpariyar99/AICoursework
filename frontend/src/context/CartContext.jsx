@@ -36,14 +36,27 @@ export function CartProvider({ children }) {
         }
     }, [cartItems, isInitialized]);
 
+    const adjustDbStock = async (productId, delta) => {
+        try {
+            await fetch(`http://localhost:8081/products/adjust-stock/${productId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ delta })
+            });
+        } catch(err) { console.error("Stock adjust failed", err); }
+    };
+
     const addToCart = (product) => {
         setCartItems(prev => {
             const existing = prev.find(item => item.id === product.id);
             if (existing) {
+                if (existing.quantity >= Number(product.stock)) return prev;
+                adjustDbStock(product.id, -1);
                 return prev.map(item =>
                     item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
                 );
             }
+            adjustDbStock(product.id, -1);
             return [...prev, { ...product, quantity: 1 }];
         });
 
@@ -51,18 +64,61 @@ export function CartProvider({ children }) {
     };
 
     const removeFromCart = (productId) => {
-        setCartItems(prev => prev.filter(item => item.id !== productId));
+        setCartItems(prev => {
+            const existing = prev.find(item => item.id === productId);
+            if (existing) {
+                adjustDbStock(productId, existing.quantity);
+            }
+            return prev.filter(item => item.id !== productId);
+        });
     };
 
     const updateQuantity = (productId, newQuantity) => {
         if (newQuantity < 1) return;
-        setCartItems(prev => prev.map(item =>
-            item.id === productId ? { ...item, quantity: newQuantity } : item
-        ));
+        setCartItems(prev => {
+            return prev.map(item => {
+                if (item.id === productId) {
+                    const delta = item.quantity - newQuantity;
+                    adjustDbStock(productId, delta);
+                    return { ...item, quantity: newQuantity };
+                }
+                return item;
+            });
+        });
     };
 
     const clearCart = () => {
         setCartItems([]);
+    };
+
+    const syncUserLogin = async (userId) => {
+        try {
+            const res = await fetch(`http://localhost:8081/users/profile/${userId}`);
+            const data = await res.json();
+            if (data.success && data.user) {
+                const dbCart = data.user.cart || [];
+                const mergedCart = [...dbCart];
+                cartItems.forEach(item => {
+                    const existing = mergedCart.find(i => i.id === item.id);
+                    if (existing) {
+                        // avoid duplicate increments if we just want to replace it, 
+                        // but generally we take max or leave as is. We'll simply let db define or overwrite.
+                        // For simplicity, just make sure item is there.
+                        existing.quantity = Math.max(existing.quantity, item.quantity);
+                    } else {
+                        mergedCart.push(item);
+                    }
+                });
+                setCartItems(mergedCart);
+                
+                await fetch(`http://localhost:8081/users/cart/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cart: mergedCart })
+                });
+            }
+        } catch(err) { console.error(err) }
+        setIsInitialized(true);
     };
 
     const showToast = (message) => {
@@ -75,7 +131,7 @@ export function CartProvider({ children }) {
     const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
     return (
-        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, cartCount, clearCart }}>
+        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, cartCount, clearCart, syncUserLogin }}>
             {children}
 
             {/* Toast Notification Container */}

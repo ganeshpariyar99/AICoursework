@@ -61,7 +61,7 @@ const verifyPayment = async (req, res) => {
             const orderId = data.purchase_order_id;
             try {
                 await OrderModel.findByIdAndUpdate(orderId, {
-                    paymentStatus: 'Completed',
+                    paymentStatus: 'Paid',
                     transactionId: data.transaction_id,
                     status: 'Processing' // Change to Processing after payment
                 });

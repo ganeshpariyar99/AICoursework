@@ -7,6 +7,8 @@ export function ProfilePage() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [orders, setOrders] = useState([]);
+    const [pageOrders, setPageOrders] = useState(1);
+    const ORDERS_PER_PAGE = 5;
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: '', email: '' });
     const [isLoading, setIsLoading] = useState(true);
@@ -168,43 +170,53 @@ export function ProfilePage() {
                             <Button variant="primary" style={{ marginTop: '1rem' }} onClick={() => navigate('/products')}>Browse Products</Button>
                         </div>
                     ) : (
-                        <div className="order-list">
-                            {orders.map(order => (
-                                <div key={order._id} className="order-item">
-                                    <div className="order-header">
-                                        <div>
-                                            <div className="order-id">Order #{order._id.slice(-6).toUpperCase()}</div>
-                                            <div className="order-date">{new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}</div>
+                        <>
+                            <div className="order-list">
+                                {orders.slice((pageOrders - 1) * ORDERS_PER_PAGE, pageOrders * ORDERS_PER_PAGE).map(order => (
+                                    <div key={order._id} className="order-item">
+                                        <div className="order-header">
+                                            <div>
+                                                <div className="order-id">Order #{order._id.slice(-6).toUpperCase()}</div>
+                                                <div className="order-date">{new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}</div>
+                                            </div>
+                                            <div className={`order-status status-${order.status}`}>
+                                                {order.status}
+                                            </div>
                                         </div>
-                                        <div className={`order-status status-${order.status}`}>
-                                            {order.status}
-                                        </div>
-                                    </div>
-                                    <div className="order-details">
-                                        <div className="order-items-preview">
-                                            {order.items.map((item, idx) => (
-                                                <div key={idx} className="order-item-detail">
-                                                    <img 
-                                                        src={item.img || FALLBACK_IMG} 
-                                                        alt={item.name} 
-                                                        className="order-item-img" 
-                                                        onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMG; }}
-                                                    />
-                                                    <span>{item.quantity}x {item.name}</span>
+                                        <div className="order-details">
+                                            <div className="order-items-preview">
+                                                {order.items.map((item, idx) => (
+                                                    <div key={idx} className="order-item-detail">
+                                                        <img 
+                                                            src={item.img || FALLBACK_IMG} 
+                                                            alt={item.name} 
+                                                            className="order-item-img" 
+                                                            onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMG; }}
+                                                        />
+                                                        <span>{item.quantity}x {item.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="order-total">
+                                                <div className="order-total-label">Total Amount</div>
+                                                <div className="order-total-value">NPR {order.totalAmount.toLocaleString()}</div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-medium)', marginTop: '0.25rem' }}>
+                                                    Paid via {order.paymentMethod}
                                                 </div>
-                                            ))}
-                                        </div>
-                                        <div className="order-total">
-                                            <div className="order-total-label">Total Amount</div>
-                                            <div className="order-total-value">NPR {order.totalAmount.toLocaleString()}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-medium)', marginTop: '0.25rem' }}>
-                                                Paid via {order.paymentMethod}
                                             </div>
                                         </div>
                                     </div>
+                                ))}
+                            </div>
+                            
+                            {orders.length > ORDERS_PER_PAGE && (
+                                <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem', gap: '1rem', alignItems: 'center' }}>
+                                    <Button type="button" variant="outline" disabled={pageOrders === 1} onClick={() => setPageOrders(pageOrders - 1)}>Prev</Button>
+                                    <span style={{ fontSize: '0.9rem', color: 'var(--text-medium)'}}>Page {pageOrders} of {Math.ceil(orders.length / ORDERS_PER_PAGE)}</span>
+                                    <Button type="button" variant="outline" disabled={pageOrders >= Math.ceil(orders.length / ORDERS_PER_PAGE)} onClick={() => setPageOrders(pageOrders + 1)}>Next</Button>
                                 </div>
-                            ))}
-                        </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

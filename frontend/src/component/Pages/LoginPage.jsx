@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../ui/Button';
+import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -9,6 +11,8 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { syncUserLogin: syncCartData } = useCart();
+  const { syncUserLogin: syncWishlistData } = useWishlist();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,8 +39,12 @@ export function LoginPage() {
 
         // Map admin redirect logic
         if (data.email === 'ganeshadmin@egadgethive.com') {
-            navigate('/admin', { replace: true });
+            window.location.href = '/admin';
         } else {
+            // Trigger contextual sync to pull user data and merge any guest data they just gathered
+            await syncCartData(data.userId);
+            await syncWishlistData(data.userId);
+
             // Navigate to previous page or home
             const from = location.state?.from || '/';
             navigate(from, { replace: true });

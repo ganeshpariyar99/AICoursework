@@ -77,6 +77,9 @@ export function ProductDetails() {
                     <div className="product-price-large">
                         NPR {product.price.toLocaleString()}
                     </div>
+                    <div style={{ marginBottom: '1.5rem', fontWeight: 600, color: Number(product.stock) > 0 ? 'var(--text-medium)' : 'var(--error-color, red)' }}>
+                        {Number(product.stock) > 0 ? `${product.stock} items left in stock` : 'Out of Stock'}
+                    </div>
 
                     <p className="product-description">
                         Experience the exceptional performance and design of the {product.name} from {product.brand}. This top-tier device in the {product.category} category is built to satisfy both enthusiasts and casual users, combining power and elegance in a single premium package.
@@ -93,17 +96,19 @@ export function ProductDetails() {
                             variant="primary" 
                             className="add-to-cart-large"
                             onClick={() => addToCart(product)}
+                            disabled={!(Number(product.stock) > 0)}
                         >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
                                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                             </svg>
-                            Add to Cart
+                            {Number(product.stock) > 0 ? 'Add to Cart' : 'Out of Stock'}
                         </Button>
 
                         <Button 
                             className="buy-now-large"
                             onClick={handleBuyNow}
+                            disabled={!(Number(product.stock) > 0)}
                         >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>

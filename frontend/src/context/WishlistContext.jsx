@@ -65,8 +65,36 @@ export function WishlistProvider({ children }) {
 
     const wishlistCount = wishlistItems.length;
 
+    const clearWishlist = () => {
+        setWishlistItems([]);
+    };
+
+    const syncUserLogin = async (userId) => {
+        try {
+            const res = await fetch(`http://localhost:8081/users/profile/${userId}`);
+            const data = await res.json();
+            if (data.success && data.user) {
+                const dbWishlist = data.user.wishlist || [];
+                const mergedWishlist = [...dbWishlist];
+                wishlistItems.forEach(item => {
+                    if (!mergedWishlist.find(i => i.id === item.id)) {
+                        mergedWishlist.push(item);
+                    }
+                });
+                setWishlistItems(mergedWishlist);
+                
+                await fetch(`http://localhost:8081/users/wishlist/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wishlist: mergedWishlist })
+                });
+            }
+        } catch(err) { console.error(err) }
+        setIsInitialized(true);
+    };
+
     return (
-        <WishlistContext.Provider value={{ wishlistItems, addToWishlist, removeFromWishlist, isInWishlist, wishlistCount }}>
+        <WishlistContext.Provider value={{ wishlistItems, addToWishlist, removeFromWishlist, isInWishlist, wishlistCount, clearWishlist, syncUserLogin }}>
             {children}
 
             {/* Toast Notification Container */}

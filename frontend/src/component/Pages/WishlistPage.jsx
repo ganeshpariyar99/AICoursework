@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
+import { useProduct } from '../../context/ProductContext';
 import './WishlistPage.css';
 
 export function WishlistPage() {
     const { wishlistItems, removeFromWishlist } = useWishlist();
     const { addToCart } = useCart();
+    const { products } = useProduct();
 
     const FALLBACK_IMG = "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=400&auto=format&fit=crop";
 
@@ -28,13 +30,16 @@ export function WishlistPage() {
                 </div>
             ) : (
                 <div className="wishlist-grid">
-                    {wishlistItems.map(item => (
+                    {wishlistItems.map(item => {
+                        const currentProduct = products.find(p => p.id === item.id) || item;
+                        const stock = Number(currentProduct.stock) || 0;
+                        return (
                         <div key={item.id} className="wishlist-item-card">
                             <div className="wishlist-item-image-wrapper">
                                 <img
-                                    src={item.img || FALLBACK_IMG}
+                                    src={currentProduct.img || FALLBACK_IMG}
                                     onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMG; }}
-                                    alt={item.name}
+                                    alt={currentProduct.name}
                                 />
                                 <button className="remove-from-wishlist-btn" onClick={() => removeFromWishlist(item.id)} aria-label="Remove from wishlist">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,23 +49,30 @@ export function WishlistPage() {
                                 </button>
                             </div>
                             <div className="wishlist-item-info">
-                                <p className="wishlist-item-category">{item.category}</p>
-                                <h3 className="wishlist-item-title">{item.name}</h3>
-                                <p className="wishlist-item-price">NPR {item.price.toLocaleString()}</p>
+                                <p className="wishlist-item-category">{currentProduct.category}</p>
+                                <h3 className="wishlist-item-title">{currentProduct.name}</h3>
+                                <p className="wishlist-item-price">NPR {currentProduct.price.toLocaleString()}</p>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 500, color: stock > 0 ? 'var(--text-medium)' : 'var(--error-color, red)', display: 'block', marginBottom: '1rem' }}>
+                                    {stock > 0 ? `${stock} left in stock` : 'Out of Stock'}
+                                </span>
                                 
                                 <Button 
                                     variant="outline" 
                                     className="wishlist-add-cart-btn"
                                     onClick={() => {
-                                        addToCart(item);
-                                        removeFromWishlist(item.id);
+                                        if (stock > 0) {
+                                            addToCart(currentProduct);
+                                            removeFromWishlist(item.id);
+                                        }
                                     }}
+                                    disabled={stock <= 0}
                                 >
-                                    Move to Cart
+                                    {stock > 0 ? 'Move to Cart' : 'Out of Stock'}
                                 </Button>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

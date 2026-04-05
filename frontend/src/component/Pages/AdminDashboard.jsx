@@ -12,18 +12,10 @@ import {
     Moon, 
     Clock
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './AdminDashboard.css';
 
-const MOCK_CHART_DATA = [
-  { name: 'Apr 2', orders: 12, revenue: 45000 },
-  { name: 'Apr 3', orders: 0, revenue: 0 },
-  { name: 'Apr 4', orders: 2, revenue: 10000 },
-  { name: 'Apr 5', orders: 0, revenue: 0 },
-  { name: 'Apr 6', orders: 0, revenue: 0 },
-  { name: 'Apr 7', orders: 0, revenue: 0 },
-  { name: 'Apr 8', orders: 0, revenue: 0 },
-];
+
 
 export function AdminDashboard() {
     const { products, addProduct, updateProduct, deleteProduct } = useProduct();
@@ -61,11 +53,76 @@ export function AdminDashboard() {
         }
     };
 
+    const getDynamicChartData = () => {
+        const dataMap = {};
+        for(let i=6; i>=0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            dataMap[dateStr] = { name: dateStr, orders: 0, revenue: 0 };
+        }
+        
+        ordersList.forEach(order => {
+            if(!order.createdAt) return;
+            const orderDate = new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            if(dataMap[orderDate]) {
+                dataMap[orderDate].orders += 1;
+                dataMap[orderDate].revenue += order.totalAmount || 0;
+            }
+        });
+        
+        return Object.values(dataMap);
+    };
+
+    const getProductSalesData = () => {
+        const sales = {};
+        ordersList.forEach(order => {
+            if (order.items && order.status !== 'Cancelled') {
+                order.items.forEach(item => {
+                    const key = item.id || item.productId || item.name;
+                    if (!sales[key]) {
+                        sales[key] = {
+                            name: item.name,
+                            quantity: 0,
+                            revenue: 0,
+                            image: item.img
+                        };
+                    }
+                    sales[key].quantity += (item.quantity || 1);
+                    sales[key].revenue += ((item.quantity || 1) * (item.price || 0));
+                });
+            }
+        });
+        return Object.values(sales).sort((a, b) => b.quantity - a.quantity);
+    };
+
+    const chartData = getDynamicChartData();
+    const productSalesData = getProductSalesData();
+
+    const handleDownloadReport = () => {
+        if (!productSalesData || productSalesData.length === 0) return;
+        
+        const headers = ['Product Name', 'Units Sold', 'Gross Revenue (NPR)'];
+        const csvContent = [
+            headers.join(','),
+            ...productSalesData.map(row => `"${row.name.replace(/"/g, '""')}",${row.quantity},${row.revenue}`)
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `Sales_Report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     useEffect(() => {
-        if (activeTab === 'users') {
+        if (activeTab === 'users' || activeTab === 'overview') {
             fetchUsers();
         }
-        if (activeTab === 'orders' || activeTab === 'overview') {
+        if (activeTab === 'orders' || activeTab === 'overview' || activeTab === 'reports') {
             fetchOrders();
         }
     }, [activeTab]);
@@ -84,7 +141,7 @@ export function AdminDashboard() {
         localStorage.removeItem('userName');
         localStorage.removeItem('loggedInUser');
         localStorage.removeItem('userId');
-        navigate('/login');
+        window.location.href = '/login';
     };
 
     const handleBanUser = async (userId) => {
@@ -96,19 +153,6 @@ export function AdminDashboard() {
             }
         } catch (error) {
             console.error("Failed to ban user", error);
-        }
-    };
-
-    const handleDeleteUser = async (userId) => {
-        if (!window.confirm("Are you sure you want to permanently delete this user?")) return;
-        try {
-            const response = await fetch(`http://localhost:8081/users/delete/${userId}`, { method: 'DELETE' });
-            const data = await response.json();
-            if (data.success) {
-                fetchUsers();
-            }
-        } catch (error) {
-            console.error("Failed to delete user", error);
         }
     };
 
@@ -196,26 +240,16 @@ export function AdminDashboard() {
                 <h3>Revenue & Orders — Last 7 Days</h3>
                 <div style={{ width: '100%', height: 350 }}>
                     <ResponsiveContainer>
-                        <AreaChart data={MOCK_CHART_DATA} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.6}/>
-                                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                                </linearGradient>
-                                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#64748B" stopOpacity={0.6}/>
-                                    <stop offset="95%" stopColor="#64748B" stopOpacity={0}/>
-                                </linearGradient>
-                            </defs>
+                        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} />
                             <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} tickFormatter={(value) => value.toLocaleString()} />
                             <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF', fontSize: 12}} />
-                            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}/>
+                            <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}/>
                             <Legend verticalAlign="bottom" height={36} iconType="circle"/>
-                            <Area yAxisId="left" type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" name="revenue" />
-                            <Area yAxisId="right" type="monotone" dataKey="orders" stroke="#64748B" strokeWidth={3} fillOpacity={1} fill="url(#colorOrders)" name="orders" />
-                        </AreaChart>
+                            <Bar yAxisId="left" dataKey="revenue" fill="#3B82F6" radius={[4, 4, 0, 0]} name="revenue" />
+                            <Bar yAxisId="right" dataKey="orders" fill="#64748B" radius={[4, 4, 0, 0]} name="orders" />
+                        </BarChart>
                     </ResponsiveContainer>
                 </div>
             </div>
@@ -230,7 +264,8 @@ export function AdminDashboard() {
                         <tr>
                             <th>Order ID</th>
                             <th>Customer</th>
-                            <th>Items</th>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
                             <th>Total</th>
                             <th>Status</th>
                             <th>Date</th>
@@ -241,7 +276,8 @@ export function AdminDashboard() {
                             <tr key={order._id}>
                                 <td>O{index + 1}</td>
                                 <td>{order.userId && order.userId.name ? order.userId.name : 'Unknown'}</td>
-                                <td>{order.items ? order.items.length : 0}</td>
+                                <td>{order.items ? order.items.map(item => item.name).join(', ') : 'N/A'}</td>
+                                <td>{order.items ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0}</td>
                                 <td>NPR {order.totalAmount ? order.totalAmount.toLocaleString() : 0}</td>
                                 <td><span className={`status ${order.status ? order.status.toLowerCase() : 'pending'}`}>{order.status}</span></td>
                                 <td>{new Date(order.createdAt).toLocaleDateString()}</td>
@@ -249,7 +285,7 @@ export function AdminDashboard() {
                         ))}
                         {ordersList.length === 0 && (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '1rem' }}>No orders found</td>
+                                <td colSpan="7" style={{ textAlign: 'center', padding: '1rem' }}>No orders found</td>
                             </tr>
                         )}
                     </tbody>
@@ -262,12 +298,35 @@ export function AdminDashboard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [formData, setFormData] = useState({
-        name: '', price: '', category: CATEGORIES[0], brand: BRANDS[0], img: '', description: ''
+        name: '', price: '', category: CATEGORIES[0], brand: BRANDS[0], img: '', description: '', stock: ''
     });
 
     const handleProductsDelete = (id) => {
         if (window.confirm("Are you sure you want to delete this product?")) deleteProduct(id);
     };
+    
+    const handleStockChange = async (product, delta) => {
+        const currentStock = Number(product.stock) || 0;
+        const newStock = Math.max(0, currentStock + delta);
+        if (newStock === currentStock) return;
+
+        const updatedProduct = { ...product, stock: newStock };
+        updateProduct(updatedProduct); // Update front-end via context
+
+        try {
+            const tempId = product._id || product.id; // Check both in case of inconsistencies
+            if (tempId) { 
+                await fetch(`http://localhost:8081/products/update/${tempId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stock: newStock })
+                });
+            }
+        } catch (err) {
+            console.error("Failed to update stock:", err);
+        }
+    };
+
     const handleProductsEdit = (product) => {
         setEditingProduct(product);
         setFormData({ ...product });
@@ -275,7 +334,7 @@ export function AdminDashboard() {
     };
     const handleProductsAddNew = () => {
         setEditingProduct(null);
-        setFormData({ id: Date.now().toString(), name: '', price: '', category: CATEGORIES[0], brand: BRANDS[0], img: '', description: ''});
+        setFormData({ id: Date.now().toString(), name: '', price: '', category: CATEGORIES[0], brand: BRANDS[0], img: '', description: '', stock: ''});
         setIsModalOpen(true);
     };
     const handleProductsInputChange = (e) => {
@@ -284,21 +343,38 @@ export function AdminDashboard() {
     };
     const handleProductsSubmit = async (e) => {
         e.preventDefault();
+        const requestData = { ...formData, price: Number(formData.price), stock: Number(formData.stock) || 0 };
+        delete requestData.id;
+        
         if (editingProduct) {
             updateProduct(formData);
+            try {
+                const targetId = formData._id || formData.id;
+                if (targetId && !targetId.toString().includes('mock')) {
+                    await fetch(`http://localhost:8081/products/update/${targetId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestData)
+                    });
+                }
+            } catch (err) { console.error(err); }
         } else {
             try {
-                const requestData = { ...formData, price: Number(formData.price) };
-                delete requestData.id;
-                await fetch('http://localhost:8081/products/add', {
+                const response = await fetch('http://localhost:8081/products/add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestData)
                 });
+                const data = await response.json();
+                if (data.success && data.product) {
+                    addProduct({ ...formData, _id: data.product._id, id: data.product._id });
+                } else {
+                    addProduct(formData);
+                }
             } catch (err) {
                 console.error("Failed to save product to backend:", err);
+                addProduct(formData);
             }
-            addProduct(formData);
         }
         setIsModalOpen(false);
     };
@@ -313,7 +389,7 @@ export function AdminDashboard() {
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th>Image</th><th>Name</th><th>Category</th><th>Brand</th><th>Price (NPR)</th><th>Actions</th>
+                            <th>Image</th><th>Name</th><th>Category</th><th>Brand</th><th>Price (NPR)</th><th>Stock</th><th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -321,6 +397,13 @@ export function AdminDashboard() {
                             <tr key={product.id}>
                                 <td><img src={product.img} alt={product.name} className="admin-product-img" onError={(e) => e.target.src = "https://via.placeholder.com/50"} /></td>
                                 <td>{product.name}</td><td>{product.category}</td><td>{product.brand}</td><td>{Number(product.price).toLocaleString()}</td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <button className="btn-icon" onClick={() => handleStockChange(product, -1)} style={{ padding: '0.2rem 0.5rem', background: '#F3F4F6', borderRadius: '4px' }}>-</button>
+                                        <span style={{ minWidth: '1.5rem', textAlign: 'center' }}>{product.stock || 0}</span>
+                                        <button className="btn-icon" onClick={() => handleStockChange(product, 1)} style={{ padding: '0.2rem 0.5rem', background: '#E5E7EB', borderRadius: '4px' }}>+</button>
+                                    </div>
+                                </td>
                                 <td>
                                     <button className="btn-icon edit-btn" onClick={() => handleProductsEdit(product)}>✏️ Edit</button>
                                     <button className="btn-icon delete-btn" onClick={() => handleProductsDelete(product.id)}>🗑️ Delete</button>
@@ -350,6 +433,10 @@ export function AdminDashboard() {
                                 <div className="form-group">
                                     <label>Price (NPR)</label>
                                     <input type="number" name="price" value={formData.price} onChange={handleProductsInputChange} required />
+                                </div>
+                                <div className="form-group">
+                                    <label>Stock</label>
+                                    <input type="number" name="stock" value={formData.stock} onChange={handleProductsInputChange} required />
                                 </div>
                                 <div className="form-group">
                                     <label>Category</label>
@@ -420,12 +507,6 @@ export function AdminDashboard() {
                                             >
                                                 {user.banned ? '✅ Unban' : '🚫 Ban'}
                                             </button>
-                                            <button 
-                                                className="btn-icon delete-btn" 
-                                                onClick={() => handleDeleteUser(user._id)}
-                                            >
-                                                🗑️ Delete
-                                            </button>
                                         </>
                                     )}
                                 </td>
@@ -459,7 +540,8 @@ export function AdminDashboard() {
                         <tr>
                             <th>Order ID</th>
                             <th>Customer</th>
-                            <th>Items</th>
+                            <th>Item Name</th>
+                            <th>Quantity</th>
                             <th>Total</th>
                             <th>Status</th>
                             <th>Date</th>
@@ -471,7 +553,8 @@ export function AdminDashboard() {
                             <tr key={order._id}>
                                 <td>O{(pageOrders - 1) * ROWS_PER_PAGE + index + 1}</td>
                                 <td>{order.userId && order.userId.name ? order.userId.name : 'Unknown'}</td>
-                                <td>{order.items ? order.items.length : 0}</td>
+                                <td>{order.items ? order.items.map(item => item.name).join(', ') : 'N/A'}</td>
+                                <td>{order.items ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0}</td>
                                 <td>NPR {order.totalAmount ? order.totalAmount.toLocaleString() : 0}</td>
                                 <td>
                                     <span className={`status ${order.status ? order.status.toLowerCase() : 'pending'}`}>{order.status}</span>
@@ -484,7 +567,7 @@ export function AdminDashboard() {
                         ))}
                         {ordersList.length === 0 && (
                             <tr>
-                                <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No orders found</td>
+                                <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>No orders found</td>
                             </tr>
                         )}
                     </tbody>
@@ -501,29 +584,37 @@ export function AdminDashboard() {
 
     const renderReports = () => (
         <div className="admin-products">
-            <div className="admin-header">
-                <h2>Reports Dashboard</h2>
+            <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2>Product Sales Report</h2>
+                <button className="btn btn-primary" onClick={handleDownloadReport} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    📥 Download CSV
+                </button>
             </div>
             <div className="table-responsive">
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Total Orders</th>
-                            <th>Revenue (NPR)</th>
+                            <th>Product Info</th>
+                            <th>Units Sold</th>
+                            <th>Gross Revenue (NPR)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {MOCK_CHART_DATA.slice((pageReports - 1) * ROWS_PER_PAGE, pageReports * ROWS_PER_PAGE).map((report, index) => (
+                        {productSalesData.slice((pageReports - 1) * ROWS_PER_PAGE, pageReports * ROWS_PER_PAGE).map((report, index) => (
                             <tr key={index}>
-                                <td>{report.name}</td>
-                                <td>{report.orders}</td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        {report.image ? <img src={report.image} alt={report.name} style={{width:'40px',height:'40px',objectFit:'cover',borderRadius:'4px'}} /> : null}
+                                        <span style={{ fontWeight: 500 }}>{report.name}</span>
+                                    </div>
+                                </td>
+                                <td><span style={{ background: '#F3F4F6', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.85rem' }}>{report.quantity} sold</span></td>
                                 <td>{report.revenue.toLocaleString()}</td>
                             </tr>
                         ))}
-                        {MOCK_CHART_DATA.length === 0 && (
+                        {productSalesData.length === 0 && (
                             <tr>
-                                <td colSpan="3" style={{ textAlign: 'center', padding: '2rem' }}>No reports found</td>
+                                <td colSpan="3" style={{ textAlign: 'center', padding: '2rem' }}>No products solid yet</td>
                             </tr>
                         )}
                     </tbody>
@@ -532,8 +623,8 @@ export function AdminDashboard() {
             
             <div className="admin-pagination" style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem', gap: '1rem', alignItems: 'center' }}>
                 <button className="btn btn-outline" disabled={pageReports === 1} onClick={() => setPageReports(pageReports - 1)}>Prev</button>
-                <span>Page {pageReports} of {Math.ceil(MOCK_CHART_DATA.length / ROWS_PER_PAGE) || 1}</span>
-                <button className="btn btn-outline" disabled={pageReports >= Math.ceil(MOCK_CHART_DATA.length / ROWS_PER_PAGE)} onClick={() => setPageReports(pageReports + 1)}>Next</button>
+                <span>Page {pageReports} of {Math.ceil(productSalesData.length / ROWS_PER_PAGE) || 1}</span>
+                <button className="btn btn-outline" disabled={pageReports >= Math.ceil(productSalesData.length / ROWS_PER_PAGE)} onClick={() => setPageReports(pageReports + 1)}>Next</button>
             </div>
         </div>
     );

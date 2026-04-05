@@ -16,13 +16,12 @@ export const ProductProvider = ({ children }) => {
                 const res = await fetch('http://localhost:8081/products/all');
                 const data = await res.json();
                 if (data.success && data.products) {
-                    // DB products mapped to match frontend IDs and structures if needed
                     const dbProducts = data.products.map(p => ({
                         ...p,
-                        id: p._id // Map DB _id to frontend id so deletes/updates still work nominally if implemented later
+                        id: p._id // Map DB _id to frontend id
                     }));
-                    // Add DB products to the top of mock list, preserving mocks underneath
-                    setProducts([...dbProducts, ...MOCK_PRODUCTS]);
+                    // Completely replace state with DB products so there are no dummy unsavable items showing up in Admin table!
+                    setProducts(dbProducts);
                 }
             } catch (err) {
                 console.error("Failed to fetch products from backend:", err);
@@ -32,15 +31,18 @@ export const ProductProvider = ({ children }) => {
     }, []);
 
     const addProduct = (newProduct) => {
-        setProducts([{ ...newProduct, id: Date.now().toString(), price: Number(newProduct.price) }, ...products]);
+        setProducts([{ ...newProduct, id: Date.now().toString(), price: Number(newProduct.price), stock: Number(newProduct.stock) || 0 }, ...products]);
     };
 
     const updateProduct = (updatedProduct) => {
-        setProducts(products.map(p => p.id === updatedProduct.id ? { ...updatedProduct, price: Number(updatedProduct.price) } : p));
+        setProducts(products.map(p => p.id === updatedProduct.id ? { ...updatedProduct, price: Number(updatedProduct.price), stock: Number(updatedProduct.stock) || 0 } : p));
     };
 
-    const deleteProduct = (id) => {
-        setProducts(products.filter(p => p.id !== id));
+    const deleteProduct = async (id) => {
+        setProducts(prev => prev.filter(p => p.id !== id));
+        try {
+            await fetch(`http://localhost:8081/products/delete/${id}`, { method: 'DELETE' });
+        } catch(err) { console.error("Failed to delete product from backend", err); }
     };
 
     return (
