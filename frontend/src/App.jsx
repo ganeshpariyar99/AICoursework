@@ -9,6 +9,7 @@ import { Footer } from './component/Footer';
 // Pages
 import { LoginPage } from './component/Pages/LoginPage';
 import { RegisterPage } from './component/Pages/RegisterPage';
+import { ForgotPassword } from './component/Pages/ForgotPassword';
 import { LandingPage } from './component/Pages/LandingPage';
 import { ProductsPage } from './component/Pages/ProductsPage';
 import { CartPage } from './component/Pages/CartPage';
@@ -25,6 +26,10 @@ const AppContent = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
 
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname, location.search]);
+
   return (
     <div className={isAdmin ? "admin-app-wrapper" : "app-container"}>
       {!isAdmin && <Navbar />}
@@ -33,6 +38,7 @@ const AppContent = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />

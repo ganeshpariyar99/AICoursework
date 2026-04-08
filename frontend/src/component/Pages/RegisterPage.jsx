@@ -25,6 +25,11 @@ export function RegisterPage() {
     e.preventDefault();
     setError('');
 
+    if (!formData.email.trim().toLowerCase().endsWith('@gmail.com')) {
+      setError("email doesnot match");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -101,7 +106,7 @@ export function RegisterPage() {
             <input
               name="email"
               type="email"
-              placeholder="name@example.com"
+              placeholder="name@gmail.com"
               className="form-input"
               value={formData.email}
               onChange={handleChange}

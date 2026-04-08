@@ -113,7 +113,7 @@ export function LoginPage() {
               <input type="checkbox" />
               Remember me
             </label>
-            <a href="#" className="forgot-link">Forgot password?</a>
+            <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
           </div>
 
           <Button type="submit" variant="primary" size="full" isLoading={isLoading}>
@@ -126,7 +126,7 @@ export function LoginPage() {
 
           <div className="demo-credentials">
             <div style={{ marginBottom: '4px', fontWeight: 600 }}>Demo Credentials:</div>
-            <div>User: user@example.com / anypass</div>
+            <div>User: user@gmail.com</div>
           </div>
         </form>
       </div>

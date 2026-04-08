@@ -21,6 +21,7 @@ export function AdminDashboard() {
     const { products, addProduct, updateProduct, deleteProduct } = useProduct();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('overview');
+    const [selectedReportInfo, setSelectedReportInfo] = useState(null);
     const [usersList, setUsersList] = useState([]);
     const [ordersList, setOrdersList] = useState([]);
     const [pageProducts, setPageProducts] = useState(1);
@@ -85,11 +86,16 @@ export function AdminDashboard() {
                             name: item.name,
                             quantity: 0,
                             revenue: 0,
-                            image: item.img
+                            image: item.img,
+                            purchaseDates: []
                         };
                     }
                     sales[key].quantity += (item.quantity || 1);
                     sales[key].revenue += ((item.quantity || 1) * (item.price || 0));
+                    
+                    if (order.createdAt) {
+                        sales[key].purchaseDates.push({ date: order.createdAt, qty: (item.quantity || 1), buyer: order.userId?.name || 'Unknown' });
+                    }
                 });
             }
         });
@@ -597,6 +603,7 @@ export function AdminDashboard() {
                             <th>Product Info</th>
                             <th>Units Sold</th>
                             <th>Gross Revenue (NPR)</th>
+                            <th>Users</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -610,6 +617,11 @@ export function AdminDashboard() {
                                 </td>
                                 <td><span style={{ background: '#F3F4F6', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.85rem' }}>{report.quantity} sold</span></td>
                                 <td>{report.revenue.toLocaleString()}</td>
+                                <td>
+                                    <button className="btn btn-outline" style={{ padding: '0.2rem 0.6rem', fontSize: '0.85rem' }} onClick={() => setSelectedReportInfo(report)}>
+                                        Details
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                         {productSalesData.length === 0 && (
@@ -626,6 +638,42 @@ export function AdminDashboard() {
                 <span>Page {pageReports} of {Math.ceil(productSalesData.length / ROWS_PER_PAGE) || 1}</span>
                 <button className="btn btn-outline" disabled={pageReports >= Math.ceil(productSalesData.length / ROWS_PER_PAGE)} onClick={() => setPageReports(pageReports + 1)}>Next</button>
             </div>
+
+            {selectedReportInfo && (
+                <div className="admin-modal-overlay">
+                    <div className="admin-modal" style={{ maxWidth: '600px' }}>
+                        <h3>{selectedReportInfo.name} - Purchase History</h3>
+                        <div style={{ maxHeight: '350px', overflowY: 'auto', margin: '1rem 0' }}>
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Quantity</th>
+                                        <th>Customer</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {selectedReportInfo.purchaseDates.sort((a,b) => new Date(b.date) - new Date(a.date)).map((p, i) => (
+                                        <tr key={i}>
+                                            <td>{new Date(p.date).toLocaleString()}</td>
+                                            <td>{p.qty}</td>
+                                            <td>{p.buyer}</td>
+                                        </tr>
+                                    ))}
+                                    {(!selectedReportInfo.purchaseDates || selectedReportInfo.purchaseDates.length === 0) && (
+                                        <tr>
+                                            <td colSpan="3" style={{ textAlign: 'center', padding: '1rem' }}>No detailed records found.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="admin-modal-actions" style={{ justifyContent: 'flex-end' }}>
+                            <button className="btn btn-primary" onClick={() => setSelectedReportInfo(null)}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 

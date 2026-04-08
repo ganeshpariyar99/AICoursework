@@ -12,6 +12,7 @@ export function ProductsPage() {
     const [maxPrice, setMaxPrice] = useState(200000);
     const [selectedCategory, setSelectedCategory] = useState('All Categories');
     const [selectedBrands, setSelectedBrands] = useState([]);
+    const [sortOption, setSortOption] = useState('Newest Arrivals');
 
     const { addToCart } = useCart();
     const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -61,6 +62,24 @@ export function ProductsPage() {
         }
 
         return true;
+    });
+
+    // Sort products
+    filteredProducts.sort((a, b) => {
+        if (sortOption === 'Price: Low to High') {
+            return Number(a.price) - Number(b.price);
+        } else if (sortOption === 'Price: High to Low') {
+            return Number(b.price) - Number(a.price);
+        } else if (sortOption === 'Best Selling') {
+            // Fallback for sorting best selling (e.g., alphabetical if no sales data)
+            return a.name?.localeCompare(b.name);
+        } else {
+            // Newest Arrivals (default order or reverse)
+            // Assuming higher ID or _id implies newer
+            const idA = a._id || a.id || '';
+            const idB = b._id || b.id || '';
+            return String(idB).localeCompare(String(idA));
+        }
     });
 
     return (
@@ -149,11 +168,15 @@ export function ProductsPage() {
                             <p className="products-subtitle">Showing {filteredProducts.length} results</p>
                         </div>
                         <div className="products-sort">
-                            <select className="sort-select">
-                                <option>Newest Arrivals</option>
-                                <option>Price: Low to High</option>
-                                <option>Price: High to Low</option>
-                                <option>Best Selling</option>
+                            <select 
+                                className="sort-select"
+                                value={sortOption}
+                                onChange={(e) => setSortOption(e.target.value)}
+                            >
+                                <option value="Newest Arrivals">Newest Arrivals</option>
+                                <option value="Price: Low to High">Price: Low to High</option>
+                                <option value="Price: High to Low">Price: High to Low</option>
+                                <option value="Best Selling">Best Selling</option>
                             </select>
                         </div>
                     </div>

@@ -15,6 +15,7 @@ export function OrderConfirmationPage() {
         const queryParams = new URLSearchParams(location.search);
         const pidx = queryParams.get('pidx');
         const payment_status = queryParams.get('status');
+        const purchase_order_id = queryParams.get('purchase_order_id');
 
         if (!pidx) {
             setStatus('Invalid payment request.');
@@ -33,7 +34,7 @@ export function OrderConfirmationPage() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ pidx })
+                    body: JSON.stringify({ pidx, purchase_order_id })
                 });
 
                 const data = await response.json();

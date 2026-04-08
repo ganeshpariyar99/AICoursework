@@ -124,9 +124,9 @@ export function Navbar() {
                     height: '36px',
                     borderRadius: '50%',
                     backgroundColor: 'var(--primary)',
-                    color: 'white',
+                    color: 'black',
                     fontWeight: 'bold',
-                    fontSize: '1rem'
+                    fontSize: '2rem'
                   }}>
                     {loggedInUser.charAt(0).toUpperCase()}
                   </div>

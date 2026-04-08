@@ -79,7 +79,12 @@ export function CartPage() {
                 // Redirect user to Khalti payment page
                 window.location.href = data.payment_url;
             } else {
-                alert('Failed to initiate payment. Please try again.');
+                const errorMsg = data.message || 'Payment Intiation Failed';
+                let khaltiDetail = '';
+                if (data.error && typeof data.error === 'object') {
+                   khaltiDetail = data.error.detail || JSON.stringify(data.error);
+                }
+                alert(`Failed to initiate payment: ${errorMsg}. ${khaltiDetail}`);
             }
         } catch (error) {
             console.error('Checkout error:', error);

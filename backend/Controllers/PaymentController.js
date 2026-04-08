@@ -1,4 +1,6 @@
 const OrderModel = require('../Models/Order');
+const UserModel = require('../Models/User');
+const nodemailer = require('nodemailer');
 
 const initiatePayment = async (req, res) => {
     try {
@@ -26,7 +28,14 @@ const initiatePayment = async (req, res) => {
             body: JSON.stringify(payload)
         });
 
-        const data = await response.json();
+        const textResponse = await response.text();
+        let data;
+        try {
+            data = JSON.parse(textResponse);
+        } catch (e) {
+            console.error("Khalti returned non-JSON:", textResponse);
+            return res.status(502).json({ success: false, message: "Gateway Error (502/503)", error: textResponse });
+        }
         
         if (response.ok) {
             return res.status(200).json({ success: true, payment_url: data.payment_url, pidx: data.pidx });
@@ -43,7 +52,7 @@ const initiatePayment = async (req, res) => {
 
 const verifyPayment = async (req, res) => {
     try {
-        const { pidx } = req.body;
+        const { pidx, purchase_order_id } = req.body;
         
         const response = await fetch("https://a.khalti.com/api/v2/epayment/lookup/", {
             method: 'POST',
@@ -58,13 +67,41 @@ const verifyPayment = async (req, res) => {
         
         if (response.ok && data.status === "Completed") {
             // Update order status in DB
-            const orderId = data.purchase_order_id;
+            const orderId = purchase_order_id || data.purchase_order_id;
             try {
-                await OrderModel.findByIdAndUpdate(orderId, {
+                const updatedOrder = await OrderModel.findByIdAndUpdate(orderId, {
                     paymentStatus: 'Paid',
                     transactionId: data.transaction_id,
                     status: 'Processing' // Change to Processing after payment
-                });
+                }, { new: true });
+
+                // Send Confirmation Email
+                if (updatedOrder && updatedOrder.userId) {
+                    const user = await UserModel.findById(updatedOrder.userId);
+                    if (user && user.email) {
+                        const transporter = nodemailer.createTransport({
+                            service: 'gmail',
+                            auth: {
+                                user: process.env.EMAIL_USER || 'egadgethive101@gmail.com',
+                                pass: process.env.EMAIL_PASS || 'dummypassword'
+                            }
+                        });
+
+                        const mailOptions = {
+                            from: process.env.EMAIL_USER || 'egadgethive101@gmail.com',
+                            to: user.email,
+                            subject: 'Payment Successful - Order Confirmation',
+                            text: `Hello ${user.name},\n\nGreat news! We have successfully received your payment of NPR ${updatedOrder.totalAmount.toLocaleString()}.\n\nYour order is now being processed by our team. \n\nThank you for shopping with E-Gadget Hive!`
+                        };
+
+                        try {
+                            await transporter.sendMail(mailOptions);
+                            console.log("Payment success email sent to", user.email);
+                        } catch (mailErr) {
+                            console.error("Failed to send payment success email", mailErr);
+                        }
+                    }
+                }
             } catch(dbErr) {
                 console.error("Failed to update order status in DB", dbErr);
             }

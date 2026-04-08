@@ -47,16 +47,21 @@ export function CartProvider({ children }) {
     };
 
     const addToCart = (product) => {
+        const existing = cartItems.find(item => item.id === product.id);
+        if (existing && existing.quantity >= Number(product.stock)) {
+            return;
+        }
+        
+        // Execute side effect exactly once outside the React state updater
+        adjustDbStock(product.id, -1);
+        
         setCartItems(prev => {
-            const existing = prev.find(item => item.id === product.id);
-            if (existing) {
-                if (existing.quantity >= Number(product.stock)) return prev;
-                adjustDbStock(product.id, -1);
+            const current = prev.find(item => item.id === product.id);
+            if (current) {
                 return prev.map(item =>
                     item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
                 );
             }
-            adjustDbStock(product.id, -1);
             return [...prev, { ...product, quantity: 1 }];
         });
 
@@ -64,22 +69,28 @@ export function CartProvider({ children }) {
     };
 
     const removeFromCart = (productId) => {
-        setCartItems(prev => {
-            const existing = prev.find(item => item.id === productId);
-            if (existing) {
-                adjustDbStock(productId, existing.quantity);
-            }
-            return prev.filter(item => item.id !== productId);
-        });
+        const existing = cartItems.find(item => item.id === productId);
+        if (existing) {
+            adjustDbStock(productId, existing.quantity);
+        }
+        
+        setCartItems(prev => prev.filter(item => item.id !== productId));
     };
 
     const updateQuantity = (productId, newQuantity) => {
         if (newQuantity < 1) return;
+        
+        const existing = cartItems.find(item => item.id === productId);
+        if (existing) {
+            const delta = existing.quantity - newQuantity;
+            if (delta !== 0) {
+                adjustDbStock(productId, delta);
+            }
+        }
+        
         setCartItems(prev => {
             return prev.map(item => {
                 if (item.id === productId) {
-                    const delta = item.quantity - newQuantity;
-                    adjustDbStock(productId, delta);
                     return { ...item, quantity: newQuantity };
                 }
                 return item;

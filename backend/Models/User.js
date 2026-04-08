@@ -28,6 +28,14 @@ const UserSchema = new Schema({
     wishlist: {
         type: Array,
         default: []
+    },
+    resetOtp: {
+        type: String,
+        default: null
+    },
+    resetOtpExpiry: {
+        type: Date,
+        default: null
     }
 });
 
