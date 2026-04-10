@@ -22,6 +22,7 @@ export function AdminDashboard() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('overview');
     const [selectedReportInfo, setSelectedReportInfo] = useState(null);
+    const [selectedShippingInfo, setSelectedShippingInfo] = useState(null);
     const [usersList, setUsersList] = useState([]);
     const [ordersList, setOrdersList] = useState([]);
     const [pageProducts, setPageProducts] = useState(1);
@@ -159,6 +160,25 @@ export function AdminDashboard() {
             }
         } catch (error) {
             console.error("Failed to ban user", error);
+        }
+    };
+
+    const handleStatusUpdate = async (orderId, newStatus) => {
+        try {
+            const response = await fetch(`http://localhost:8081/orders/update-status/${orderId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            const data = await response.json();
+            if (data.success) {
+                setOrdersList(ordersList.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+            } else {
+                alert('Failed to update status');
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Error updating status');
         }
     };
 
@@ -549,9 +569,10 @@ export function AdminDashboard() {
                             <th>Item Name</th>
                             <th>Quantity</th>
                             <th>Total</th>
-                            <th>Status</th>
                             <th>Date</th>
+                            <th>Shipping</th>
                             <th>Payment</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -562,18 +583,32 @@ export function AdminDashboard() {
                                 <td>{order.items ? order.items.map(item => item.name).join(', ') : 'N/A'}</td>
                                 <td>{order.items ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0}</td>
                                 <td>NPR {order.totalAmount ? order.totalAmount.toLocaleString() : 0}</td>
-                                <td>
-                                    <span className={`status ${order.status ? order.status.toLowerCase() : 'pending'}`}>{order.status}</span>
-                                </td>
                                 <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                                 <td>
+                                    <button className="btn btn-outline" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }} onClick={() => setSelectedShippingInfo(order)}>View Info</button>
+                                </td>
+                                <td>
                                     <span style={{ fontSize: '0.85rem' }}>{order.paymentMethod} - {order.paymentStatus}</span>
+                                </td>
+                                <td>
+                                    <select 
+                                        value={order.status} 
+                                        onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
+                                        style={{ padding: '0.3rem', borderRadius: '4px', border: '1px solid var(--border-light)', outline: 'none', fontSize: '0.85rem', backgroundColor: 'var(--surface-color)', color: 'var(--text-dark)' }}
+                                    >
+                                        <option value="Pending">Pending</option>
+                                        <option value="Processing">Processing</option>
+                                        <option value="Order Confirm">Order Confirm</option>
+                                        <option value="Shipping">Shipping</option>
+                                        <option value="Delivered">Delivered</option>
+                                        <option value="Cancelled">Cancelled</option>
+                                    </select>
                                 </td>
                             </tr>
                         ))}
                         {ordersList.length === 0 && (
                             <tr>
-                                <td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>No orders found</td>
+                                <td colSpan="9" style={{ textAlign: 'center', padding: '2rem' }}>No orders found</td>
                             </tr>
                         )}
                     </tbody>
@@ -585,6 +620,22 @@ export function AdminDashboard() {
                 <span>Page {pageOrders} of {Math.ceil(ordersList.length / ROWS_PER_PAGE) || 1}</span>
                 <button className="btn btn-outline" disabled={pageOrders >= Math.ceil(ordersList.length / ROWS_PER_PAGE)} onClick={() => setPageOrders(pageOrders + 1)}>Next</button>
             </div>
+
+            {selectedShippingInfo && (
+                <div className="admin-modal-overlay">
+                    <div className="admin-modal" style={{ maxWidth: '400px' }}>
+                        <h3>Shipping Details</h3>
+                        <div style={{ margin: '1rem 0' }}>
+                            <p style={{ margin: '0.5rem 0' }}><strong>Customer:</strong> {selectedShippingInfo.userId?.name || 'N/A'} ({selectedShippingInfo.userId?.email || 'N/A'})</p>
+                            <p style={{ margin: '0.5rem 0' }}><strong>Address:</strong> {selectedShippingInfo.shippingAddress || 'Not provided'}</p>
+                            <p style={{ margin: '0.5rem 0' }}><strong>Phone Number:</strong> {selectedShippingInfo.phoneNumber || 'Not provided'}</p>
+                        </div>
+                        <div className="admin-modal-actions" style={{ justifyContent: 'flex-end' }}>
+                            <button className="btn btn-primary" onClick={() => setSelectedShippingInfo(null)}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 
@@ -684,10 +735,10 @@ export function AdminDashboard() {
                 <header className="admin-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h1>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {/* <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Moon size={18} />
                             <span>Dark Mode</span>
-                        </button>
+                        </button> */}
                         <button className="btn btn-outline" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#EF4444', borderColor: '#FECACA', backgroundColor: '#FEF2F2' }}>
                             <LogOut size={18} />
                             <span>Logout</span>

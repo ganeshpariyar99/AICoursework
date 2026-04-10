@@ -8,6 +8,8 @@ export function CartPage() {
     const navigate = useNavigate();
     const { cartItems, removeFromCart, updateQuantity } = useCart();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [shippingAddress, setShippingAddress] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
 
     // Calculate totals
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -18,6 +20,11 @@ export function CartPage() {
         const userName = localStorage.getItem('loggedInUser');
         if (!userName) {
             navigate('/login', { state: { from: '/cart' } });
+            return;
+        }
+
+        if (!shippingAddress.trim() || !phoneNumber.trim()) {
+            alert('Please enter your shipping address and phone number before proceeding.');
             return;
         }
 
@@ -36,7 +43,9 @@ export function CartPage() {
                     quantity: item.quantity,
                     img: item.img
                 })),
-                totalAmount: total
+                totalAmount: total,
+                shippingAddress,
+                phoneNumber
             };
 
             const orderResponse = await fetch('http://localhost:8081/orders/create', {
@@ -205,6 +214,29 @@ export function CartPage() {
                 <div className="summary-row total">
                     <span className="summary-label">Order total</span>
                     <span className="summary-value">NPR {total.toLocaleString()}</span>
+                </div>
+
+                <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-medium)', fontWeight: 500 }}>Shipping Address *</label>
+                        <input 
+                            type="text" 
+                            value={shippingAddress} 
+                            onChange={(e) => setShippingAddress(e.target.value)}
+                            placeholder="Enter your full address"
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #E5E7EB', fontSize: '0.9rem' }}
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-medium)', fontWeight: 500 }}>Phone Number *</label>
+                        <input 
+                            type="text" 
+                            value={phoneNumber} 
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            placeholder="Enter your phone number"
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #E5E7EB', fontSize: '0.9rem' }}
+                        />
+                    </div>
                 </div>
 
                 <Button variant="primary" className="checkout-btn" disabled={cartItems.length === 0 || isProcessing} onClick={handleCheckout}>

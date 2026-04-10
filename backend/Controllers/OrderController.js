@@ -3,7 +3,7 @@ const ProductModel = require('../Models/Product');
 
 const createOrder = async (req, res) => {
     try {
-        const { userId, items, totalAmount } = req.body;
+        const { userId, items, totalAmount, shippingAddress, phoneNumber } = req.body;
         
         if (!userId || !items || items.length === 0) {
             return res.status(400).json({ success: false, message: "Invalid order data" });
@@ -13,6 +13,8 @@ const createOrder = async (req, res) => {
             userId,
             items,
             totalAmount,
+            shippingAddress,
+            phoneNumber,
             status: 'Pending',
             paymentStatus: 'Pending',
             paymentMethod: 'Khalti'
@@ -59,8 +61,31 @@ const getAllOrders = async (req, res) => {
     }
 };
 
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+        
+        const updatedOrder = await OrderModel.findByIdAndUpdate(
+            orderId,
+            { status },
+            { new: true }
+        );
+        
+        if (!updatedOrder) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+        
+        res.status(200).json({ success: true, message: "Order status updated", order: updatedOrder });
+    } catch (error) {
+        console.error("Update Order Status Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 module.exports = {
     createOrder,
     getUserOrders,
-    getAllOrders
+    getAllOrders,
+    updateOrderStatus
 };

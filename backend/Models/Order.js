@@ -22,7 +22,7 @@ const OrderSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+        enum: ['Pending', 'Processing', 'Order Confirm', 'Shipping', 'Delivered', 'Cancelled'],
         default: 'Processing'
     },
     paymentMethod: {
@@ -35,6 +35,12 @@ const OrderSchema = new Schema({
         default: 'Pending'
     },
     transactionId: {
+        type: String
+    },
+    shippingAddress: {
+        type: String
+    },
+    phoneNumber: {
         type: String
     },
     createdAt: {

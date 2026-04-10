@@ -69,36 +69,40 @@ const verifyPayment = async (req, res) => {
             // Update order status in DB
             const orderId = purchase_order_id || data.purchase_order_id;
             try {
-                const updatedOrder = await OrderModel.findByIdAndUpdate(orderId, {
-                    paymentStatus: 'Paid',
-                    transactionId: data.transaction_id,
-                    status: 'Processing' // Change to Processing after payment
-                }, { new: true });
+                const existingOrder = await OrderModel.findById(orderId);
+                
+                if (existingOrder && existingOrder.paymentStatus !== 'Paid') {
+                    const updatedOrder = await OrderModel.findByIdAndUpdate(orderId, {
+                        paymentStatus: 'Paid',
+                        transactionId: data.transaction_id,
+                        status: 'Processing' // Change to Processing after payment
+                    }, { new: true });
 
-                // Send Confirmation Email
-                if (updatedOrder && updatedOrder.userId) {
-                    const user = await UserModel.findById(updatedOrder.userId);
-                    if (user && user.email) {
-                        const transporter = nodemailer.createTransport({
-                            service: 'gmail',
-                            auth: {
-                                user: process.env.EMAIL_USER || 'egadgethive101@gmail.com',
-                                pass: process.env.EMAIL_PASS || 'dummypassword'
+                    // Send Confirmation Email
+                    if (updatedOrder && updatedOrder.userId) {
+                        const user = await UserModel.findById(updatedOrder.userId);
+                        if (user && user.email) {
+                            const transporter = nodemailer.createTransport({
+                                service: 'gmail',
+                                auth: {
+                                    user: process.env.EMAIL_USER || 'egadgethive101@gmail.com',
+                                    pass: process.env.EMAIL_PASS || 'dummypassword'
+                                }
+                            });
+
+                            const mailOptions = {
+                                from: process.env.EMAIL_USER || 'egadgethive101@gmail.com',
+                                to: user.email,
+                                subject: 'Payment Successful - Order Confirmation',
+                                text: `Hello ${user.name},\n\nGreat news! We have successfully received your payment of NPR ${updatedOrder.totalAmount.toLocaleString()}.\n\nYour order is now being processed by our team. \n\nThank you for shopping with E-Gadget Hive!`
+                            };
+
+                            try {
+                                await transporter.sendMail(mailOptions);
+                                console.log("Payment success email sent to", user.email);
+                            } catch (mailErr) {
+                                console.error("Failed to send payment success email", mailErr);
                             }
-                        });
-
-                        const mailOptions = {
-                            from: process.env.EMAIL_USER || 'egadgethive101@gmail.com',
-                            to: user.email,
-                            subject: 'Payment Successful - Order Confirmation',
-                            text: `Hello ${user.name},\n\nGreat news! We have successfully received your payment of NPR ${updatedOrder.totalAmount.toLocaleString()}.\n\nYour order is now being processed by our team. \n\nThank you for shopping with E-Gadget Hive!`
-                        };
-
-                        try {
-                            await transporter.sendMail(mailOptions);
-                            console.log("Payment success email sent to", user.email);
-                        } catch (mailErr) {
-                            console.error("Failed to send payment success email", mailErr);
                         }
                     }
                 }
