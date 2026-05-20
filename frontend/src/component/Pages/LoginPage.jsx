@@ -17,7 +17,7 @@ export function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(''); // Clear previous errors
+    setError('');
 
     try {
       const response = await fetch('http://localhost:8081/auth/login', {

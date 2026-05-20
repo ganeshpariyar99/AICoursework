@@ -224,7 +224,8 @@ export function AdminDashboard() {
     const renderSidebar = () => (
         <aside className="admin-sidebar">
             <div className="sidebar-header">
-                <h2>E-GadgetHive</h2>
+    
+                <h2 style={{color:'#2563EB'}}>E-GadgetHive</h2>
                 <p>Admin Panel</p>
             </div>
             

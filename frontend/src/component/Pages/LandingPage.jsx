@@ -35,7 +35,7 @@ export function LandingPage() {
           </p>
           <div className="hero-buttons">
             <Link to="/products">
-              <Button variant="primary" style={{ padding: '0.875rem 2rem', fontSize: '1rem' }}>Shop Now</Button>
+              <Button variant="primary" style={{ padding: '0.875rem 2rem', fontSize: '1rem'}}>Shop Now</Button>
             </Link>
             <Link to="/products">
               <Button variant="outline" style={{ padding: '0.875rem 2rem', fontSize: '1rem', background: 'white' }}>View Top Brands</Button>

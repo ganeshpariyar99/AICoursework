@@ -113,7 +113,7 @@ const forgotPassword = async (req, res) => {
             service: 'gmail',
             auth: {
                 user: process.env.EMAIL_USER || 'egadgethive101@gmail.com',
-                pass: process.env.EMAIL_PASS || 'dummypassword' // The user should set this in env
+                pass: process.env.EMAIL_PASS || 'dummypassword'
             }
         });
 
@@ -124,12 +124,10 @@ const forgotPassword = async (req, res) => {
             text: `Your OTP for password reset is: ${otp}. It is valid for 15 minutes.`
         };
 
-        // We will wrap this in a console.log and try/catch so if auth fails in local testing, it won't crash the server.
         try {
             await transporter.sendMail(mailOptions);
         } catch (mailErr) {
             console.log("Mail sending failed (Setup EMAIL_USER/EMAIL_PASS in .env):", mailErr.message);
-            // Even if it fails, we will allow the workflow in dev by returning the OTP in console
             console.log("OTP IS:", otp);
         }
 
