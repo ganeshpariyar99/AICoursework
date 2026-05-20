@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 // const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 const AuthRouter = require('./Routes/AuthRouter');
 const PaymentRouter = require('./Routes/PaymentRouter');
 const OrderRouter = require('./Routes/OrderRouter');
@@ -16,6 +17,7 @@ const PORT = process.env.PORT || 3000;
 // app.use(bodyParser.json());
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/auth', AuthRouter);
 app.use('/payment', PaymentRouter);

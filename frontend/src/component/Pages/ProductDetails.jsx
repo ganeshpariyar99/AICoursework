@@ -40,6 +40,23 @@ export function ProductDetails() {
         navigate('/cart');
     };
 
+    const reviews = product.reviews || [];
+    const avgRating = reviews.length > 0 
+        ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length).toFixed(1)
+        : 0;
+
+    const renderStars = (rating) => {
+        const stars = [];
+        for (let i = 1; i <= 5; i++) {
+            if (i <= Math.round(rating)) {
+                stars.push(<svg key={i} width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>);
+            } else {
+                stars.push(<svg key={i} width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>);
+            }
+        }
+        return stars;
+    };
+
     return (
         <div className="container product-details-page">
             <div className="breadcrumb">
@@ -61,16 +78,13 @@ export function ProductDetails() {
                     <p className="product-brand-category">{product.brand} | {product.category}</p>
                     <h1 className="product-title">{product.name}</h1>
                     
-                    {/* Mock Rating */}
-                    <div className="product-rating">
-                        <div className="stars">
-                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"/></svg>
+                    {/* Dynamic Rating */}
+                    <div className="product-rating" style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className="stars" style={{ display: 'flex', gap: '2px', color: '#F59E0B' }}>
+                            {renderStars(avgRating)}
                         </div>
-                        <span className="reviews-count">(128 reviews)</span>
+                        <span className="reviews-count" style={{ marginLeft: '8px' }}>({reviews.length} reviews)</span>
+                        {reviews.length > 0 && <span style={{ marginLeft: '8px', fontWeight: 'bold' }}>{avgRating} / 5</span>}
                     </div>
 
                     <div className="product-price-large">
@@ -125,6 +139,43 @@ export function ProductDetails() {
                         </button>
                     </div>
                 </div>
+            </div>
+            
+            {/* Reviews Section */}
+            <div className="product-reviews-section" style={{ marginTop: '4rem', borderTop: '1px solid var(--border-color)', paddingTop: '2rem' }}>
+                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 'bold' }}>Customer Reviews</h2>
+                
+                {reviews.length === 0 ? (
+                    <p style={{ color: 'var(--text-medium)' }}>No reviews yet. Be the first to review this product after purchasing!</p>
+                ) : (
+                    <div className="reviews-list" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        {reviews.map((review, idx) => (
+                            <div key={idx} className="review-card" style={{ padding: '1.5rem', backgroundColor: 'var(--bg-light)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                                            {review.userName.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--text-dark)' }}>{review.userName}</p>
+                                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-medium)' }}>{new Date(review.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', color: '#F59E0B' }}>
+                                        {renderStars(review.rating)}
+                                    </div>
+                                </div>
+                                <p style={{ margin: 0, color: 'var(--text-medium)', lineHeight: 1.6 }}>{review.comment || 'No comment provided.'}</p>
+                                {review.adminReply && (
+                                    <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#eef2ff', borderRadius: '8px', borderLeft: '4px solid var(--primary-color)' }}>
+                                        <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--primary-color)', fontSize: '0.9rem' }}>Admin Response:</p>
+                                        <p style={{ margin: '0.5rem 0 0 0', color: 'var(--text-dark)', fontSize: '0.95rem' }}>{review.adminReply}</p>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

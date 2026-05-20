@@ -13,6 +13,10 @@ export function ProfilePage() {
     const [editForm, setEditForm] = useState({ name: '', email: '' });
     const [isLoading, setIsLoading] = useState(true);
 
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [selectedProductForReview, setSelectedProductForReview] = useState(null);
+    const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+
     const FALLBACK_IMG = "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=400&auto=format&fit=crop";
 
     useEffect(() => {
@@ -73,6 +77,34 @@ export function ProfilePage() {
         } catch (err) {
             console.error("Error updating profile:", err);
             alert('Something went wrong updating profile.');
+        }
+    };
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const targetId = selectedProductForReview.productId || selectedProductForReview.id;
+            const res = await fetch(`http://localhost:8081/products/${targetId}/review`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: user._id || localStorage.getItem('userId'),
+                    userName: user.name,
+                    rating: Number(reviewForm.rating),
+                    comment: reviewForm.comment
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Review added successfully!');
+                setReviewModalOpen(false);
+                setReviewForm({ rating: 5, comment: '' });
+            } else {
+                alert(data.message || 'Failed to add review');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error adding review');
         }
     };
 
@@ -186,14 +218,20 @@ export function ProfilePage() {
                                         <div className="order-details">
                                             <div className="order-items-preview">
                                                 {order.items.map((item, idx) => (
-                                                    <div key={idx} className="order-item-detail">
-                                                        <img 
-                                                            src={item.img || FALLBACK_IMG} 
-                                                            alt={item.name} 
-                                                            className="order-item-img" 
-                                                            onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMG; }}
-                                                        />
-                                                        <span>{item.quantity}x {item.name}</span>
+                                                    <div key={idx} className="order-item-detail" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '0.5rem' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                            <img 
+                                                                src={item.img || FALLBACK_IMG} 
+                                                                alt={item.name} 
+                                                                className="order-item-img" 
+                                                                onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMG; }}
+                                                            />
+                                                            <span>{item.quantity}x {item.name}</span>
+                                                        </div>
+                                                        <Button variant="outline" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }} onClick={() => {
+                                                            setSelectedProductForReview(item);
+                                                            setReviewModalOpen(true);
+                                                        }}>Review</Button>
                                                     </div>
                                                 ))}
                                             </div>
@@ -220,6 +258,44 @@ export function ProfilePage() {
                     )}
                 </div>
             </div>
+
+            {reviewModalOpen && (
+                <div className="admin-modal-overlay">
+                    <div className="admin-modal" style={{ maxWidth: '400px' }}>
+                        <h3>Review {selectedProductForReview?.name}</h3>
+                        <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Rating (1-5)</label>
+                                <select 
+                                    value={reviewForm.rating} 
+                                    onChange={(e) => setReviewForm({ ...reviewForm, rating: e.target.value })}
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                                >
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Good</option>
+                                    <option value="3">3 - Average</option>
+                                    <option value="2">2 - Poor</option>
+                                    <option value="1">1 - Terrible</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Comment</label>
+                                <textarea 
+                                    value={reviewForm.comment}
+                                    onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                                    rows="4"
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                                    placeholder="Write your review here..."
+                                />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                                <Button type="button" variant="outline" onClick={() => setReviewModalOpen(false)}>Cancel</Button>
+                                <Button type="submit" variant="primary">Submit Review</Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

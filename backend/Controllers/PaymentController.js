@@ -11,7 +11,7 @@ const initiatePayment = async (req, res) => {
             website_url: "http://localhost:3000/",
             amount: amount, // Amount should be in paisa
             purchase_order_id: purchase_order_id,
-            purchase_order_name: purchase_order_name,
+            purchase_order_name: "E-Gadget Hive Order",
             customer_info: {
                 name: name || "Customer",
                 email: email || "customer@example.com",

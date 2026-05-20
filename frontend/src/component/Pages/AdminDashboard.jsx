@@ -11,7 +11,8 @@ import {
     LogOut, 
     Moon, 
     Clock,
-    Bell
+    Bell,
+    Star
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './AdminDashboard.css';
@@ -30,6 +31,10 @@ export function AdminDashboard() {
     const [pageUsers, setPageUsers] = useState(1);
     const [pageOrders, setPageOrders] = useState(1);
     const [pageReports, setPageReports] = useState(1);
+    const [pageReviews, setPageReviews] = useState(1);
+    const [replyModalOpen, setReplyModalOpen] = useState(false);
+    const [selectedReviewForReply, setSelectedReviewForReply] = useState(null);
+    const [replyText, setReplyText] = useState('');
     const [showNotifications, setShowNotifications] = useState(false);
     const ROWS_PER_PAGE = 10;
 
@@ -259,6 +264,13 @@ export function AdminDashboard() {
                     <FileText size={20} />
                     <span>Reports</span>
                 </button>
+                <button 
+                    className={`nav-item ${activeTab === 'reviews' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('reviews')}
+                >
+                    <Star size={20} />
+                    <span>Reviews</span>
+                </button>
             </nav>
         </aside>
     );
@@ -373,7 +385,7 @@ export function AdminDashboard() {
         const updatedProduct = { ...product, stock: newStock };
         updateProduct(updatedProduct); // Update front-end via context
 
-        if (newStock === 0) {
+        if (newStock <= 0) {
             alert(`Notification: "${product.name}" is now out of stock!`);
         }
 
@@ -410,7 +422,7 @@ export function AdminDashboard() {
         const requestData = { ...formData, price: Number(formData.price), stock: Number(formData.stock) || 0 };
         delete requestData.id;
 
-        if (requestData.stock === 0) {
+        if (requestData.stock <= 0) {
             alert(`Notification: "${formData.name}" is out of stock!`);
         }
         
@@ -520,8 +532,33 @@ export function AdminDashboard() {
                                 </div>
                             </div>
                             <div className="form-group">
-                                <label>Image URL</label>
-                                <input type="text" name="img" value={formData.img} onChange={handleProductsInputChange} />
+                                <label>Product Image</label>
+                                <input type="file" accept="image/*" onChange={async (e) => {
+                                    const file = e.target.files[0];
+                                    if (!file) return;
+                                    const formDataImage = new FormData();
+                                    formDataImage.append('image', file);
+                                    try {
+                                        const response = await fetch('http://localhost:8081/products/upload', {
+                                            method: 'POST',
+                                            body: formDataImage
+                                        });
+                                        const data = await response.json();
+                                        if (data.success) {
+                                            setFormData(prev => ({ ...prev, img: data.imageUrl }));
+                                        } else {
+                                            alert('Failed to upload image');
+                                        }
+                                    } catch (err) {
+                                        console.error('Upload error:', err);
+                                        alert('Error uploading image');
+                                    }
+                                }} />
+                                {formData.img && (
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        <img src={formData.img} alt="Preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
+                                    </div>
+                                )}
                             </div>
                             <div className="form-group">
                                 <label>Description</label>
@@ -770,7 +807,154 @@ export function AdminDashboard() {
         </div>
     );
 
-    const outOfStockProducts = products.filter(p => Number(p.stock) === 0);
+    const renderReviews = () => {
+        const handleReplySubmit = async (e) => {
+            e.preventDefault();
+            if (!replyText.trim()) return;
+            try {
+                const res = await fetch(`http://localhost:8081/products/${selectedReviewForReply.productId}/review/${selectedReviewForReply._id}/reply`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reply: replyText })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Reply added successfully!');
+                    setReplyModalOpen(false);
+                    setReplyText('');
+                    updateProduct(data.product);
+                } else {
+                    alert(data.message || 'Failed to add reply');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error adding reply');
+            }
+        };
+
+        const allReviews = products.flatMap(p => 
+            (p.reviews || []).map(r => ({
+                ...r,
+                productName: p.name,
+                productId: p._id || p.id
+            }))
+        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        const totalReviews = allReviews.length;
+        const totalPages = Math.ceil(totalReviews / ROWS_PER_PAGE) || 1;
+        const currentReviews = allReviews.slice((pageReviews - 1) * ROWS_PER_PAGE, pageReviews * ROWS_PER_PAGE);
+
+        return (
+            <div className="admin-section">
+                <div className="section-header">
+                    <h2>Customer Reviews</h2>
+                </div>
+                <div className="admin-table-container">
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Reviewer</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {currentReviews.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>No reviews found</td>
+                                </tr>
+                            ) : (
+                                currentReviews.map((review, idx) => (
+                                    <tr key={idx}>
+                                        <td>{review.productName}</td>
+                                        <td>{review.userName}</td>
+                                        <td>
+                                            <div style={{ display: 'flex', color: '#F59E0B' }}>
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} size={16} fill={i < review.rating ? "currentColor" : "none"} />
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td style={{ maxWidth: '300px', whiteSpace: 'normal', overflowWrap: 'break-word' }}>
+                                            {review.comment || 'No comment'}
+                                            {review.adminReply && (
+                                                <div style={{ marginTop: '0.5rem', padding: '0.5rem', backgroundColor: '#f3f4f6', borderRadius: '4px', fontSize: '0.85rem', borderLeft: '3px solid var(--primary-color)' }}>
+                                                    <strong>Your Reply:</strong> {review.adminReply}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td>{new Date(review.createdAt).toLocaleDateString()}</td>
+                                        <td>
+                                            <button 
+                                                className="btn btn-outline" 
+                                                style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}
+                                                onClick={() => {
+                                                    setSelectedReviewForReply(review);
+                                                    setReplyText(review.adminReply || '');
+                                                    setReplyModalOpen(true);
+                                                }}
+                                            >
+                                                {review.adminReply ? 'Edit Reply' : 'Reply'}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div className="admin-pagination">
+                    <button 
+                        className="btn btn-outline" 
+                        disabled={pageReviews === 1}
+                        onClick={() => setPageReviews(pageReviews - 1)}
+                    >
+                        Previous
+                    </button>
+                    <span>Page {pageReviews} of {totalPages}</span>
+                    <button 
+                        className="btn btn-outline" 
+                        disabled={pageReviews >= totalPages}
+                        onClick={() => setPageReviews(pageReviews + 1)}
+                    >
+                        Next
+                    </button>
+                </div>
+                
+                {replyModalOpen && (
+                    <div className="admin-modal-overlay">
+                        <div className="admin-modal" style={{ maxWidth: '400px' }}>
+                            <h3>Reply to Review</h3>
+                            <p style={{ fontSize: '0.9rem', color: '#6b7280', marginBottom: '1rem' }}>Replying to {selectedReviewForReply?.userName}'s review for {selectedReviewForReply?.productName}</p>
+                            <form onSubmit={handleReplySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Your Reply</label>
+                                    <textarea 
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        rows="4"
+                                        required
+                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+                                        placeholder="Type your response here..."
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                                    <button type="button" className="btn btn-outline" onClick={() => setReplyModalOpen(false)}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary">Submit Reply</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const outOfStockProducts = products.filter(p => Number(p.stock) <= 0);
 
     return (
         <div className="admin-dashboard-layout">
@@ -866,6 +1050,7 @@ export function AdminDashboard() {
                     {activeTab === 'orders' && renderOrders()}
                     {activeTab === 'users' && renderUsers()}
                     {activeTab === 'reports' && renderReports()}
+                    {activeTab === 'reviews' && renderReviews()}
                 </div>
             </main>
         </div>
