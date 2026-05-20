@@ -9,9 +9,9 @@ const initiatePayment = async (req, res) => {
         const payload = {
             return_url: "http://localhost:3000/payment/success",
             website_url: "http://localhost:3000/",
-            amount: amount, // Amount should be in paisa
+            amount: amount, 
             purchase_order_id: purchase_order_id,
-            purchase_order_name: "E-Gadget Hive Order",
+            purchase_order_name: purchase_order_name,
             customer_info: {
                 name: name || "Customer",
                 email: email || "customer@example.com",

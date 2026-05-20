@@ -17,6 +17,9 @@ export function ProfilePage() {
     const [selectedProductForReview, setSelectedProductForReview] = useState(null);
     const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
+    const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+    const [selectedOrderForReceipt, setSelectedOrderForReceipt] = useState(null);
+
     const FALLBACK_IMG = "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=400&auto=format&fit=crop";
 
     useEffect(() => {
@@ -241,6 +244,12 @@ export function ProfilePage() {
                                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-medium)', marginTop: '0.25rem' }}>
                                                     Paid via {order.paymentMethod}
                                                 </div>
+                                                {(order.paymentStatus === 'Paid' || order.paymentStatus === 'Completed') && (
+                                                    <Button variant="primary" style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.3rem 0.6rem' }} onClick={() => {
+                                                        setSelectedOrderForReceipt(order);
+                                                        setReceiptModalOpen(true);
+                                                    }}>View Receipt</Button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -293,6 +302,66 @@ export function ProfilePage() {
                                 <Button type="submit" variant="primary">Submit Review</Button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {receiptModalOpen && selectedOrderForReceipt && (
+                <div className="admin-modal-overlay">
+                    <div className="admin-modal receipt-modal">
+                        <div className="receipt-header">
+                            <h2>Payment Receipt</h2>
+                            <p>E-Gadget Hive</p>
+                        </div>
+                        <div className="receipt-body">
+                            <div className="receipt-row">
+                                <span className="receipt-label">Customer Name:</span>
+                                <span>{user.name}</span>
+                            </div>
+                            <div className="receipt-row">
+                                <span className="receipt-label">Order ID:</span>
+                                <span>#{selectedOrderForReceipt._id.slice(-6).toUpperCase()}</span>
+                            </div>
+                            <div className="receipt-row">
+                                <span className="receipt-label">Transaction ID:</span>
+                                <span>{selectedOrderForReceipt.transactionId || 'N/A'}</span>
+                            </div>
+                            <div className="receipt-row">
+                                <span className="receipt-label">Date:</span>
+                                <span>{new Date(selectedOrderForReceipt.createdAt).toLocaleString()}</span>
+                            </div>
+                            <div className="receipt-row">
+                                <span className="receipt-label">Payment Method:</span>
+                                <span>{selectedOrderForReceipt.paymentMethod}</span>
+                            </div>
+                            <div className="receipt-row">
+                                <span className="receipt-label">Payment Status:</span>
+                                <span className="receipt-status success">{selectedOrderForReceipt.paymentStatus}</span>
+                            </div>
+                            
+                            <hr className="receipt-divider" />
+                            
+                            <div className="receipt-items">
+                                <strong>Items:</strong>
+                                {selectedOrderForReceipt.items.map((item, idx) => (
+                                    <div key={idx} className="receipt-item-row">
+                                        <span>{item.name} x{item.quantity}</span>
+                                        <span>NPR {(item.price * item.quantity).toLocaleString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <hr className="receipt-divider" />
+                            
+                            <div className="receipt-row receipt-total">
+                                <span>Total Paid:</span>
+                                <span>NPR {selectedOrderForReceipt.totalAmount.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div className="receipt-actions">
+                            <Button variant="outline" onClick={() => window.print()}>Print Receipt</Button>
+                            <Button variant="primary" onClick={() => setReceiptModalOpen(false)}>Close</Button>
+                        </div>
                     </div>
                 </div>
             )}

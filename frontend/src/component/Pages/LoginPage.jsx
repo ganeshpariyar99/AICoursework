@@ -31,17 +31,15 @@ export function LoginPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Store auth details
         localStorage.setItem('token', data.jwtToken);
         localStorage.setItem('loggedInUser', data.name);
         localStorage.setItem('userEmail', data.email);
         localStorage.setItem('userId', data.userId);
 
-        // Map admin redirect logic
+        
         if (data.email === 'ganeshadmin@egadgethive.com') {
             window.location.href = '/admin';
         } else {
-            // Trigger contextual sync to pull user data and merge any guest data they just gathered
             await syncCartData(data.userId);
             await syncWishlistData(data.userId);
 
