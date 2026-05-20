@@ -18,6 +18,7 @@ import { ProductDetails } from './component/Pages/ProductDetails';
 import { OrderConfirmationPage } from './component/Pages/OrderConfirmationPage';
 import { ProfilePage } from './component/Pages/ProfilePage';
 import { AdminDashboard } from './component/Pages/AdminDashboard';
+import { AboutPage } from './component/Pages/AboutPage';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { ProductProvider } from './context/ProductContext';
@@ -36,6 +37,7 @@ const AppContent = () => {
       <main className={isAdmin ? "admin-main-wrapper" : "main-content"}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

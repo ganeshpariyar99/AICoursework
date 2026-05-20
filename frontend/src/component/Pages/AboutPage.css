@@ -1,0 +1,458 @@
+/* AboutPage.css */
+
+.about-page-wrapper {
+  background-color: var(--bg-light);
+  overflow: hidden;
+  animation: fadeInPage 0.6s ease-out;
+}
+
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 1. Hero Section */
+.about-hero {
+  position: relative;
+  background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url('https://www.abovethelinesecurity.com/wp-content/uploads/2016/02/about-us-background.png');
+  background-size: cover;
+  background-position: center;
+  padding: 6rem 0;
+  text-align: center;
+  color: white;
+  border-radius: 0 0 24px 24px;
+  overflow: hidden;
+}
+
+.about-hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-badge {
+  display: inline-block;
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.about-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(to right, #ffffff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.about-subtitle {
+  font-size: 1.25rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+
+/* 2. Main Story Section */
+.about-story-section {
+  padding: 5rem 0;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (min-width: 992px) {
+  .story-grid {
+    grid-template-columns: 1.1fr 1.2fr;
+  }
+}
+
+/* Left Image Column */
+.story-image-side {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.story-image-side .image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+.story-main-img {
+  width: 100%;
+  height: 480px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+}
+
+.experience-badge {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  z-index: 10;
+  animation: floatBadge 3s ease-in-out infinite;
+}
+
+@keyframes floatBadge {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.exp-number {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.exp-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Right Content Column */
+.story-content-side {
+  display: flex;
+  flex-direction: column;
+}
+
+.story-heading {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.story-heading::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  background: var(--primary-color);
+  border-radius: 2px;
+  margin-top: 0.75rem;
+}
+
+.story-paragraphs p {
+  font-size: 1.05rem;
+  color: var(--text-medium);
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.story-conclusion {
+  font-weight: 600;
+  color: var(--text-dark) !important;
+  border-left: 3px solid var(--primary-color);
+  padding-left: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* 3. Mission & Vision Section */
+.mission-vision-section {
+  padding: 5rem 0;
+  background-color: white;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mv-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .mv-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.mv-card {
+  position: relative;
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: default;
+}
+
+.mv-card:hover {
+  transform: translateY(-8px);
+  border-color: #cbd5e1;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+}
+
+.mv-card.mission-card:hover {
+  border-color: rgba(37, 99, 235, 0.4);
+}
+
+.mv-card.vision-card:hover {
+  border-color: rgba(236, 72, 153, 0.4);
+}
+
+.mv-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 10;
+  transition: transform 0.3s;
+}
+
+.mission-card .mv-icon-wrapper {
+  background: #eff6ff;
+  color: var(--primary-color);
+}
+
+.vision-card .mv-icon-wrapper {
+  background: #fdf2f8;
+  color: var(--pink-accent);
+}
+
+.mv-card:hover .mv-icon-wrapper {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.mv-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 10;
+}
+
+.mv-text {
+  font-size: 1.05rem;
+  color: var(--text-medium);
+  line-height: 1.6;
+  position: relative;
+  z-index: 10;
+  margin: 0;
+}
+
+/* Glow overlays */
+.mv-card-glow {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  filter: blur(50px);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.mission-card .mv-card-glow {
+  background: var(--primary-color);
+}
+
+.vision-card .mv-card-glow {
+  background: var(--pink-accent);
+}
+
+.mv-card:hover .mv-card-glow {
+  opacity: 0.15;
+}
+
+/* 4. Values Section */
+.values-section {
+  padding: 6rem 0;
+  background-color: var(--bg-light);
+}
+
+.section-intro {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 4rem auto;
+}
+
+.values-heading {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+}
+
+.values-subheading {
+  font-size: 1.1rem;
+  color: var(--text-medium);
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .values-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .values-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.value-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2.25rem 2rem;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.value-card:hover {
+  transform: translateY(-5px);
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-sm);
+}
+
+.val-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.value-card:hover .val-icon {
+  background: var(--primary-color);
+  color: white;
+}
+
+.value-card h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 0.75rem 0;
+}
+
+.value-card p {
+  font-size: 0.925rem;
+  color: var(--text-light);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsiveness tweaks */
+@media (max-width: 992px) {
+  .about-hero {
+    padding: 4.5rem 0;
+  }
+  
+  .about-title {
+    font-size: 2.75rem;
+  }
+  
+  .story-main-img {
+    height: 380px;
+  }
+  
+  .experience-badge {
+    bottom: -10px;
+    right: -10px;
+    padding: 1rem;
+  }
+  
+  .exp-number {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .about-hero {
+    padding: 3.5rem 0;
+  }
+  
+  .about-title {
+    font-size: 2.25rem;
+  }
+  
+  .about-subtitle {
+    font-size: 1.05rem;
+  }
+  
+  .story-heading {
+    font-size: 1.85rem;
+  }
+  
+  .experience-badge {
+    position: relative;
+    bottom: 0;
+    right: 0;
+    margin: 1.5rem auto 0 auto;
+    width: fit-content;
+    animation: none;
+  }
+}

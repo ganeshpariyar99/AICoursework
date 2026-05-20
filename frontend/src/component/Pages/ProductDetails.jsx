@@ -21,7 +21,6 @@ export function ProductDetails() {
         if (foundProduct) {
             setProduct(foundProduct);
         } else {
-            // Wait briefly before redirecting or show error
         }
     }, [id]);
 

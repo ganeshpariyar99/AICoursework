@@ -59,6 +59,9 @@ export function Navbar() {
             <Link to="/products" className="nav-link">
               Shop
             </Link>
+            <Link to="/about" className="nav-link">
+              About Us
+            </Link>
             {userEmail === 'ganeshadmin@egadgethive.com' && (
               <Link to="/admin" className="nav-link">
                 Admin Dashboard
@@ -142,7 +145,7 @@ export function Navbar() {
                 </Link>
 
                 <Link to="/register">
-                  <Button variant="primary">Register</Button>
+                  <Button variant="primary"><style>Register</style>Register</Button>
                 </Link>
               </>
             )}

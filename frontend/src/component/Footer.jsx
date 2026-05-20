@@ -43,6 +43,7 @@ export function Footer() {
             <ul className="footer-links">
               <li><Link to="/">Home</Link></li>
               <li><Link to="/products">Shop</Link></li>
+              <li><Link to="/about">About Us</Link></li>
               <li><Link to="/cart">Cart</Link></li>
               <li><Link to="/login">Login</Link></li>
             </ul>
@@ -52,10 +53,10 @@ export function Footer() {
           <div>
             <h3 className="footer-heading">Categories</h3>
             <ul className="footer-links">
-              <li><Link to="/products?category=smartphones">Smartphones</Link></li>
-              <li><Link to="/products?category=laptops">Laptops</Link></li>
-              <li><Link to="/products?category=audio">Audio</Link></li>
-              <li><Link to="/products?category=accessories">Accessories</Link></li>
+              <li><Link to="/products?category=Smartphones">Smartphones</Link></li>
+              <li><Link to="/products?category=Laptops">Laptops</Link></li>
+              <li><Link to="/products?category=Audio">Audio</Link></li>
+              <li><Link to="/products?category=Accessories">Accessories</Link></li>
             </ul>
           </div>
 

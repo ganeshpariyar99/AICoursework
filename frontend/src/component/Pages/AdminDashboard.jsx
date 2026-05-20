@@ -10,7 +10,8 @@ import {
     FileText, 
     LogOut, 
     Moon, 
-    Clock
+    Clock,
+    Bell
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './AdminDashboard.css';
@@ -29,6 +30,7 @@ export function AdminDashboard() {
     const [pageUsers, setPageUsers] = useState(1);
     const [pageOrders, setPageOrders] = useState(1);
     const [pageReports, setPageReports] = useState(1);
+    const [showNotifications, setShowNotifications] = useState(false);
     const ROWS_PER_PAGE = 10;
 
     const fetchOrders = async () => {
@@ -163,16 +165,48 @@ export function AdminDashboard() {
         }
     };
 
+    const getStatusPopupMessage = (status) => {
+        switch (status) {
+            case 'Pending':
+                return 'Order status is now set to Pending.';
+            case 'Processing':
+                return 'Order is now in Processing. The team will start packaging and preparing items.';
+            case 'Order Confirm':
+                return 'Order has been Confirmed successfully! Customer will be notified.';
+            case 'Shipping':
+                return 'Order has been Shipped! It is now out for delivery.';
+            case 'Delivered':
+                return 'Order has been Delivered successfully to the customer!';
+            case 'Cancelled':
+                return 'Order has been Cancelled.';
+            default:
+                return `Order status updated to ${status} successfully.`;
+        }
+    };
+
     const handleStatusUpdate = async (orderId, newStatus) => {
+        let cancellationNote = "";
+        if (newStatus === "Cancelled") {
+            cancellationNote = prompt("Please enter the reason for cancellation (Required):");
+            if (cancellationNote === null) {
+                return;
+            }
+            if (!cancellationNote.trim()) {
+                alert("Cancellation reason is required to cancel this order.");
+                return;
+            }
+        }
+
         try {
             const response = await fetch(`http://localhost:8081/orders/update-status/${orderId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({ status: newStatus, note: cancellationNote })
             });
             const data = await response.json();
             if (data.success) {
                 setOrdersList(ordersList.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
+                alert(getStatusPopupMessage(newStatus));
             } else {
                 alert('Failed to update status');
             }
@@ -236,34 +270,34 @@ export function AdminDashboard() {
                     <div className="stat-icon"><Users size={24} /></div>
                     <div className="stat-details">
                         <h3>{usersList.length}</h3>
-                        <p>Total Users <span>→</span></p>
+                        <p>Total Users</p>
                     </div>
                 </div>
                 <div className="stat-card" onClick={() => setActiveTab('products')}>
                     <div className="stat-icon"><Package size={24} /></div>
                     <div className="stat-details">
                         <h3>{products.length}</h3>
-                        <p>Total Products <span>→</span></p>
+                        <p>Total Products</p>
                     </div>
                 </div>
                 <div className="stat-card" onClick={() => setActiveTab('orders')}>
                     <div className="stat-icon"><ShoppingCart size={24} /></div>
                     <div className="stat-details">
                         <h3>{ordersList.length}</h3>
-                        <p>Total Orders <span>→</span></p>
+                        <p>Total Orders</p>
                     </div>
                 </div>
                 <div className="stat-card" onClick={() => setActiveTab('orders')}>
                     <div className="stat-icon"><Clock size={24} /></div>
                     <div className="stat-details">
                         <h3>{ordersList.filter(o => o.status === 'Pending').length}</h3>
-                        <p>Pending Orders <span>→</span></p>
+                        <p>Pending Orders</p>
                     </div>
                 </div>
             </div>
 
             <div className="chart-container">
-                <h3>Revenue & Orders — Last 7 Days</h3>
+                <h3>Revenue & Orders </h3>
                 <div style={{ width: '100%', height: 350 }}>
                     <ResponsiveContainer>
                         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
@@ -339,6 +373,10 @@ export function AdminDashboard() {
         const updatedProduct = { ...product, stock: newStock };
         updateProduct(updatedProduct); // Update front-end via context
 
+        if (newStock === 0) {
+            alert(`Notification: "${product.name}" is now out of stock!`);
+        }
+
         try {
             const tempId = product._id || product.id; // Check both in case of inconsistencies
             if (tempId) { 
@@ -371,6 +409,10 @@ export function AdminDashboard() {
         e.preventDefault();
         const requestData = { ...formData, price: Number(formData.price), stock: Number(formData.stock) || 0 };
         delete requestData.id;
+
+        if (requestData.stock === 0) {
+            alert(`Notification: "${formData.name}" is out of stock!`);
+        }
         
         if (editingProduct) {
             updateProduct(formData);
@@ -644,7 +686,7 @@ export function AdminDashboard() {
             <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2>Product Sales Report</h2>
                 <button className="btn btn-primary" onClick={handleDownloadReport} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    📥 Download CSV
+                    Download CSV
                 </button>
             </div>
             <div className="table-responsive">
@@ -728,18 +770,91 @@ export function AdminDashboard() {
         </div>
     );
 
+    const outOfStockProducts = products.filter(p => Number(p.stock) === 0);
+
     return (
         <div className="admin-dashboard-layout">
             {renderSidebar()}
             <main className="admin-main-content">
                 <header className="admin-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h1>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        {/* <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Moon size={18} />
-                            <span>Dark Mode</span>
-                        </button> */}
-                        <button className="btn btn-outline" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#EF4444', borderColor: '#FECACA', backgroundColor: '#FEF2F2' }}>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', position: 'relative' }}>
+                        {/* Notification Bell */}
+                        <div style={{ position: 'relative' }}>
+                            <button 
+                                className="btn btn-outline" 
+                                onClick={() => setShowNotifications(!showNotifications)}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', padding: 0 }}
+                            >
+                                <Bell size={18} />
+                                {outOfStockProducts.length > 0 && (
+                                    <span style={{
+                                        position: 'absolute',
+                                        top: '-4px',
+                                        right: '-4px',
+                                        backgroundColor: '#EF4444',
+                                        color: 'white',
+                                        borderRadius: '50%',
+                                        fontSize: '11px',
+                                        fontWeight: 'bold',
+                                        width: '18px',
+                                        height: '18px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        {outOfStockProducts.length}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Dropdown menu */}
+                            {showNotifications && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '48px',
+                                    right: 0,
+                                    backgroundColor: 'white',
+                                    border: '1px solid #E5E7EB',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                                    width: '300px',
+                                    zIndex: 100,
+                                    maxHeight: '400px',
+                                    overflowY: 'auto'
+                                }}>
+                                    <div style={{ padding: '12px 16px', borderBottom: '1px solid #E5E7EB', fontWeight: 600, fontSize: '14px', color: '#111827', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span>Notifications</span>
+                                        <span style={{ fontSize: '12px', color: '#6B7280', fontWeight: 'normal' }}>{outOfStockProducts.length} issue(s)</span>
+                                    </div>
+                                    <div style={{ padding: '8px 0' }}>
+                                        {outOfStockProducts.length === 0 ? (
+                                            <div style={{ padding: '16px', textAlign: 'center', color: '#6B7280', fontSize: '13px' }}>
+                                                All items are in stock! 🎉
+                                            </div>
+                                        ) : (
+                                            outOfStockProducts.map(p => (
+                                                <div 
+                                                    key={p.id} 
+                                                    onClick={() => { setActiveTab('products'); setShowNotifications(false); handleProductsEdit(p); }}
+                                                    style={{ padding: '10px 16px', borderBottom: '1px solid #F3F4F6', fontSize: '13px', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center' }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F9FAFB'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                >
+                                                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EF4444', flexShrink: 0 }}></span>
+                                                    <div style={{ textAlign: 'left' }}>
+                                                        <span style={{ fontWeight: 600, color: '#374151', display: 'block' }}>{p.name}</span>
+                                                        <span style={{ color: '#EF4444', display: 'block', fontSize: '12px', marginTop: '2px' }}>Out of stock (0 remaining)</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <button className="btn btn-outline" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#EF4444', borderColor: '#FECACA', backgroundColor: '#FEF2F2', height: '40px' }}>
                             <LogOut size={18} />
                             <span>Logout</span>
                         </button>

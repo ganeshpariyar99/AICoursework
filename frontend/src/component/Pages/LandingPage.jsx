@@ -159,16 +159,78 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="cta-section">
-        <h2 className="cta-title">Ready to upgrade your tech?</h2>
-        <p className="cta-desc">
-          Join our platform today and explore the best tech gadgets on the market. Create an account to unlock exclusive deals and faster checkout.
-        </p>
-        <Link to="/register" className="cta-btn">
-          Create Account Now
-        </Link>
+      {/* Brand About Us Preview Section */}
+      <section className="about-preview-section">
+        <div className="about-preview-content">
+          <span className="about-preview-badge">Discover E-GadgetHive</span>
+          <h2 className="about-preview-title">Your Trusted Tech Destination</h2>
+          <p className="about-preview-text">
+            Welcome to E Gadget Hive, your premier marketplace for the latest electronic gadgets and accessories. We are dedicated to providing premium technology solutions, 100% genuine products, and top-tier support. Find the perfect gear to match your lifestyle in one single place.
+          </p>
+          
+          <div className="about-preview-features">
+            <div className="about-preview-feat">
+              <div className="about-preview-feat-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+              </div>
+              <h4>100% Genuine</h4>
+              <p>Authentic, handpicked tech brands.</p>
+            </div>
+            
+            <div className="about-preview-feat">
+              <div className="about-preview-feat-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <h4>Fast Delivery</h4>
+              <p>1-3 days countrywide shipping.</p>
+            </div>
+
+            <div className="about-preview-feat">
+              <div className="about-preview-feat-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <h4>Friendly Support</h4>
+              <p>Dedicated customer service team.</p>
+            </div>
+          </div>
+
+          <Link to="/about">
+            <Button variant="outline" style={{ padding: '0.75rem 1.75rem', fontSize: '0.95rem', background: 'white' }}>
+              Learn More About Us
+            </Button>
+          </Link>
+        </div>
+
+        <div className="about-preview-visual">
+          <div className="about-preview-img-wrapper">
+            <img 
+              src="https://images.unsplash.com/photo-1468495244123-6c6c332eeece?q=80&w=800&auto=format&fit=crop" 
+              alt="Latest electronic gadgets collection" 
+            />
+          </div>
+          <div className="about-preview-shape"></div>
+        </div>
       </section>
+
+      {/* CTA Section */}
+      {!localStorage.getItem('loggedInUser') && (
+        <section className="cta-section">
+          <h2 className="cta-title">Ready to upgrade your tech?</h2>
+          <p className="cta-desc">
+            Join our platform today and explore the best tech gadgets on the market. Create an account to unlock exclusive deals and faster checkout.
+          </p>
+          <Link to="/register" className="cta-btn">
+            Create Account Now
+          </Link>
+        </section>
+      )}
     </div>
   );
 }

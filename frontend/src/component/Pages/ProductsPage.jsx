@@ -22,11 +22,17 @@ export function ProductsPage() {
     useEffect(() => {
         const categoryParam = searchParams.get('category');
         if (categoryParam) {
-            setSelectedCategory(categoryParam);
+            const matchedCategory = CATEGORIES.find(
+                cat => cat.toLowerCase() === categoryParam.toLowerCase()
+            );
+            if (matchedCategory) {
+                setSelectedCategory(matchedCategory);
+            } else {
+                setSelectedCategory('All Categories');
+            }
         } else {
             setSelectedCategory('All Categories');
         }
-        // Could also sync 'search' here if needed, but we'll apply it directly in filtering
     }, [searchParams]);
 
     const handleCategoryChange = (category) => {
